@@ -1,8 +1,18 @@
+using Microsoft.EntityFrameworkCore;
+using System.Configuration;
+using WikiSlam.DAL;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddDbContext<WikiSlamContext>(options =>
+options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddCors();
+
 
 var app = builder.Build();
 
