@@ -15,6 +15,6 @@
         public short Willpower { get; set; }
 
         //Navigation property
-        public virtual User User { get; set; }
+        //public virtual User User { get; set; }
     }
 }

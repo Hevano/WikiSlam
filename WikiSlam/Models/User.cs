@@ -9,7 +9,7 @@
         public bool IsAdmin { get; set; }
 
         //Navigation properties
-        public virtual Lobby Lobby { get; set; }
-        public virtual Article Article { get; set; }
+        //public virtual Lobby Lobby { get; set; }
+        //public virtual Article Article { get; set; }
     }
 }
