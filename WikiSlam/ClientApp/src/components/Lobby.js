@@ -61,7 +61,7 @@ export function Lobby() {
           <Button variant='secondary' onClick={leave}>Leave Lobby</Button>
         </Col>
         <Col>
-          {isLoading ? <Spinner/> : <LobbyList users={users} isAdmin={!user.isAdmin} onCloseCallback={removeUsers} />}
+          {isLoading ? <Spinner/> : <LobbyList users={users} isAdmin={user.isAdmin} onCloseCallback={removeUsers} />}
         </Col>
       </Row>
     </Container>
