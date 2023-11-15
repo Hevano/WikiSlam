@@ -110,10 +110,10 @@ namespace WikiSlam.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<LobbyCreationResponse>> CreateLobby([FromBody] string adminName)
+        public async Task<ActionResult<LobbyCreationResponse>> CreateLobby([FromBody] AdminLogin admin)
         {
             //Validate admin name
-            if (adminName.Length > 12 || 1 > adminName.Length)
+            if (admin.Name.Length > 12 || 1 > admin.Name.Length)
             {
                 return BadRequest();
             }
@@ -128,8 +128,9 @@ namespace WikiSlam.Controllers
 
             //Create User
             var user = new User();
-            user.Name = adminName;
+            user.Name = admin.Name;
             user.LobbyId = createdLobby.Entity.Id;
+            user.IsAdmin = true;
             var createdUser = _dbContext.Users.Add(user);
             await _dbContext.SaveChangesAsync();
 
