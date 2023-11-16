@@ -6,6 +6,7 @@ import Col from 'react-bootstrap/Col';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Button from 'react-bootstrap/Button'
 import { LobbyList } from './LobbyList';
+import { EditNameModal } from './EditNameModal';
 import { Spinner } from 'reactstrap';
 import axios from 'axios'
 
@@ -13,13 +14,14 @@ export function Lobby() {
 
   const location = useLocation()
   const lobbyId = location.state.lobbyId
-  const user = location.state.user
   const lobbyCode = location.state.lobbyCode
 
   const navigate = useNavigate()
 
+  const [user, setUser] = useState(location.state.user)
   const [users, setUsers] = useState()
   const [isLoading, setLoading] = useState(true)
+  const [isEditingName, setEditingName] = useState(false)
 
   useEffect(()=>{
     console.log(lobbyId)
@@ -51,8 +53,20 @@ export function Lobby() {
     })
   }
 
+  function changeName(newName){
+    let newUser = structuredClone(user)
+    newUser.name = newName
+    axios({url: `api/user/${user.id}`, method: "put", data: newUser}).then(result =>{
+      setUser(newUser)
+      const newUserArray = users.map((u)=>{ return u.id === newUser.id ? newUser : u})
+      setUsers(newUserArray)
+      setEditingName(false)
+    })
+  }
+
   return (
     <Container fluid>
+      <EditNameModal show={isEditingName} handleClose={()=>{setEditingName(false)}} handleCreate={changeName} modalTitle={"Change Name"} modalLabel={"Create a new name"}/>
       <Row>
         <Col>
           <h3>Lobby</h3>
@@ -61,7 +75,7 @@ export function Lobby() {
           <Button variant='secondary' onClick={leave}>Leave Lobby</Button>
         </Col>
         <Col>
-          {isLoading ? <Spinner/> : <LobbyList users={users} isAdmin={user.isAdmin} onCloseCallback={removeUsers} />}
+          {isLoading ? <Spinner/> : <LobbyList loggedInUser={user} users={users} isAdmin={user.isAdmin} onCloseCallback={removeUsers} onEditCallback={()=>{setEditingName(true)}} />}
         </Col>
       </Row>
     </Container>

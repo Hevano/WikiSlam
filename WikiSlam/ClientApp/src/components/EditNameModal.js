@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { Modal, Button, Form } from 'react-bootstrap'
 
-export function LobbyCreationModal({show, handleClose, handleCreate}) {
+export function EditNameModal({show, handleClose, handleCreate, modalTitle, modalLabel}) {
 
   const userNameRef = useRef()
 
@@ -14,12 +14,12 @@ export function LobbyCreationModal({show, handleClose, handleCreate}) {
       >
         <Modal.Dialog>
             <Modal.Header closeButton>
-            <Modal.Title>Create New Lobby</Modal.Title>
+            <Modal.Title>{modalTitle ? modalTitle : "Create New Lobby"}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
               <Form>
                 <Form.Group className="mb-3">
-                  <Form.Label>To Get Started, Enter Your Username</Form.Label>
+                  <Form.Label>{modalLabel ? modalLabel : "To Get Started, Enter Your Username"}</Form.Label>
                   <Form.Control
                     placeholder="Name"
                     autoFocus

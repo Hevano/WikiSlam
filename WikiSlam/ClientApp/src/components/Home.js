@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { Button, Col, Container, Row } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import {LobbyCreationModal} from './LobbyCreationModal';
+import {EditNameModal} from './EditNameModal';
 
 export function Home() {
 
@@ -12,7 +12,7 @@ export function Home() {
   const [showCreateLobby, setShowCreateLobby] = useState(false)
 
   function join(){
-    
+    navigate("/join")
   }
 
   function createLobby(userName){
@@ -24,7 +24,7 @@ export function Home() {
 
   return (
     <>
-    <LobbyCreationModal show={showCreateLobby} handleClose={()=>{setShowCreateLobby(false)}} handleCreate={createLobby}/>
+    <EditNameModal show={showCreateLobby} handleClose={()=>{setShowCreateLobby(false)}}/>
     <Container>
       <Row><Col>
         <h1>WikiSlam!</h1>
