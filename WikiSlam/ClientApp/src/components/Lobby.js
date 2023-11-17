@@ -1,5 +1,6 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useCallback} from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
+import useWebSocket, { ReadyState } from 'react-use-websocket';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -23,11 +24,26 @@ export function Lobby() {
   const [isLoading, setLoading] = useState(true)
   const [isEditingName, setEditingName] = useState(false)
 
+  //TODO: Use the proxy routing somehow
+  const [socketUrl, setSocketUrl] = useState('ws://localhost:3000/ws');
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+
+  useEffect(() => {
+    sendMessage(JSON.stringify({userId: user.id, actionType:"join"}))
+  }, []);
+
+  useEffect(() => {
+    if (lastMessage !== null) {
+      let msgJson = JSON.parse(lastMessage.data)
+      if(msgJson.actionType === "join"){
+        const newUserArray = [...users.slice(), msgJson.user]
+        setUsers(newUserArray)
+      }
+    }
+  }, [lastMessage]);
+
   useEffect(()=>{
-    console.log(lobbyId)
-    console.log(user)
     axios.get(`api/lobby/${lobbyId}/users`).then(res => {
-      console.log(res)
       setLoading(false)
       setUsers(res.data)
     })
@@ -47,7 +63,6 @@ export function Lobby() {
   }
 
   function leave(){
-    console.log(user)
     axios({url: `api/user/${user.id}`, method: "delete"}).then(result =>{
       navigate("/")
     })

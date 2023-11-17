@@ -29,9 +29,11 @@ if (!app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseWebSockets();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
 
 
 app.MapControllerRoute(

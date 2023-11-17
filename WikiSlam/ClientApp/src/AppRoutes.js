@@ -3,6 +3,7 @@ import { FetchData } from "./components/FetchData";
 import { Home } from "./components/Home";
 import { JoinForm } from "./components/JoinForm";
 import { Lobby } from "./components/Lobby";
+import { Game } from "./components/Game";
 
 const AppRoutes = [
   {
@@ -16,6 +17,10 @@ const AppRoutes = [
   {
     path: '/lobby',
     element: <Lobby/>
+  },
+  {
+    path: '/game',
+    element: <Game/>
   },
   {
     path: '/counter',
