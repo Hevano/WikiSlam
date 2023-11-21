@@ -20,3 +20,7 @@ code {
 .modal > .modal-dialog > .modal-content {
   display: contents;
 }
+
+.color-primary {
+  background-color: #1E1E31;
+}
