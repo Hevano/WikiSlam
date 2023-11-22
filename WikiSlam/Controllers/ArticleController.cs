@@ -56,7 +56,7 @@ namespace WikiSlam.Controllers
             }
 
             //Remove any other articles this user owns
-            var userArticles = _dbContext.Articles.Where(a => a.UserId == article.UserId).ToList();
+            var userArticles = _dbContext.Articles.Where(a => a.UserId == article.UserId).ToList(); //TODO: figure out why this can't be async
             if (!userArticles.IsNullOrEmpty())
             {
                 _dbContext.Articles.RemoveRange(userArticles);

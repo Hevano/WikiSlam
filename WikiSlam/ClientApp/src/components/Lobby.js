@@ -43,7 +43,6 @@ export function Lobby() {
   useEffect(()=>{
     axios.get(`api/lobby/${lobby.id}/users`).then(res => {
       setLoading(false)
-      console.log(res)
       setUsers(res.data)
     })
   },[])

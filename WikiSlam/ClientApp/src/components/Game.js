@@ -22,9 +22,24 @@ export function Game() {
   }
 
   const [article, setArticle] = useState()
+  const [articleId, setArticleId] = useState()
   const [articleLoading, setArticleLoading] = useState(true)
   const [articleQuestions, setArticleQuestions] = useState([])
+  const [randomQuestions, setRandomQuestions] = useState([])
   const [questionsLoading, setQuestionLoading] = useState(true)
+
+  const [timerProgress, setTimerProgress] = useState(0)
+
+  useEffect(()=>{
+    const interval = setInterval(() => {
+      setTimerProgress(timerProgress => timerProgress + 0.5)
+      if(timerProgress > 100){
+        clearInterval(interval)
+        alert("GAME OVER")
+      } 
+    }, 500)
+    return () => clearInterval(interval);
+  }, [])
 
   function getArticle(){
     setArticleLoading(true)
@@ -60,21 +75,56 @@ export function Game() {
         newArticle.willpower = text.match(/[\^]/gm).length
   
         setArticle(newArticle)
-        setArticleQuestions(htmlToQuoteList(html))
+        let quoteList = htmlToQuoteList(html)
+        console.log(quoteList)
+        setArticleQuestions(quoteList)
         setArticleLoading(false)
 
-        delete newArticle.image
-        delete newArticle.desc
+        //delete newArticle.image
+        //delete newArticle.desc
 
         axios({url: `api/article`, method: "post", data: newArticle}).then(res => {
           console.log(res)
+          setArticleId(res.data.id)
+          getQuestions()
         })
       })
     })
   }
 
-  function getQuestions(){
+  async function getQuestions(){
+    setQuestionLoading(true)
 
+    //Get html of random articles for questions
+    var questionArticleHtml = []
+    async function getArticleForQuestion() {
+      try {
+        const response = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/random/html`);
+        questionArticleHtml.push(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    while(questionArticleHtml.length < 3){
+      await getArticleForQuestion()
+    }
+
+    //Extract random quotes from articles and update state
+    const newQuestions = []
+    questionArticleHtml.forEach(html => {
+      let quotes = htmlToQuoteList(html)
+      let quote = quotes[Math.floor(Math.random() * quotes.length)]
+      newQuestions.push({correctAnswer: false, text:quote})
+    })
+
+    //Place real quote at random index
+    let articleQuestion = {correctAnswer: true, text: articleQuestions[Math.floor(Math.random() * articleQuestions.length)]}
+    let randomIndex = Math.floor(Math.random() * 4)
+    newQuestions.splice(randomIndex,0,articleQuestion)
+
+    
+    setRandomQuestions(newQuestions)
+    setQuestionLoading(false)
   }
   
 
@@ -100,29 +150,59 @@ export function Game() {
     return matches
   }
 
+  function answerQuestion(wasCorrect){
+    const updatedArticle = article
+    updatedArticle.level += (wasCorrect) ? 1 : -1
+    const modifier = (wasCorrect) ? 1.5 : 0.6
+    let randomChoice = Math.floor(Math.random() * 3)
+    switch(randomChoice){
+      case 0:
+        article.strength = Math.floor(article.strength * modifier)
+        break
+      case 1:
+        article.dexterity = Math.floor(article.dexterity * modifier)
+        break
+      case 2:
+        article.willpower = Math.floor(article.willpower * modifier)
+        break
+      default:
+        break
+    }
+
+    console.log(updatedArticle)
+    setArticle(updatedArticle)
+
+    //delete updatedArticle.image
+    //delete updatedArticle.desc
+
+    updatedArticle.id = articleId
+    updatedArticle.userId = user.id
+
+    getQuestions()
+
+    axios({method:"put", url:`api/article/${articleId}`, data:updatedArticle}).then(res =>{
+      console.log(res)
+    })
+  }
+
   return (
     <Container fluid>
       <Row>
       <Col className='color-primary col-2'>
         <h1 style={{color:"white", textAlign:"center"}}>WikiSlam</h1>
         <ListGroup>
-          <ListGroup.Item>Player 1</ListGroup.Item>
-          <ListGroup.Item>Player 2</ListGroup.Item>
-          <ListGroup.Item>Player 3</ListGroup.Item>
-          <ListGroup.Item>Player 4</ListGroup.Item>
-          <ListGroup.Item>Player 5</ListGroup.Item>
-          <ListGroup.Item>Player 6</ListGroup.Item>
+          {<ListGroup.Item>Player 1</ListGroup.Item>}
         </ListGroup>
       </Col>
       <Col>
         <Stack>
-          <ProgressBar animated  className="m-4" now={60} />
+          <ProgressBar animated  className="m-4" now={timerProgress} />
           <Stack direction="horizontal" gap={6}>
-            <Badge className='mx-auto'>Lvl 10</Badge>
-            <Card style={{width:"40%"}} className='mx-auto'>
+            <Badge className='mx-auto'>{(articleLoading) ? <Spinner/> : `Lvl ${article.level}`}</Badge>
+            <Card style={{width:"60%"}} className='h-5'>
               <Card.Body>
                 {(articleLoading) ? <Placeholder as={Card.Title} animation="glow"><Placeholder xs={12} /></Placeholder> : <Card.Title className="text-center">{article.title}</Card.Title>}
-                <Card.Img variant="bottom" src={(!articleLoading && article.image) ? article.image : "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"} />
+                <Card.Img style={{width: "100%", height: "15vw", "object-fit": "cover"}} variant="bottom" src={(!articleLoading && article.image) ? article.image : "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"} />
                 <Card.Text>
                   <div className='mx-auto'>{(articleLoading) ? "" : article.desc}</div>
                   <Stack direction='horizontal'>
@@ -135,7 +215,7 @@ export function Game() {
             </Card>
             <Button className='mx-auto' disabled={((articleLoading || questionsLoading) && false)} onClick={getArticle}>Reroll</Button>
           </Stack>
-          <QuestionBox isLoading={questionsLoading}/>
+          <QuestionBox isLoading={questionsLoading} questionArray={randomQuestions} questionCallback={answerQuestion}/>
         </Stack>
       </Col>
     </Row>
