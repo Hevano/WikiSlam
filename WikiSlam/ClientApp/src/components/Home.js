@@ -18,13 +18,13 @@ export function Home() {
   function createLobby(userName){
     console.log("create")
     axios({url: `api/lobby`, method: "post", data: {admin: null, name: userName}}).then(result =>{
-      navigate("/lobby", {state:{lobbyId: result.data.lobby.id, user: result.data.admin, lobbyCode:result.data.lobby.code}})
+      navigate("/lobby", {state:{lobby: result.data.lobby, user: result.data.admin}})
     })
   }
 
   return (
     <>
-    <EditNameModal show={showCreateLobby} handleClose={()=>{setShowCreateLobby(false)}}/>
+    <EditNameModal show={showCreateLobby} handleClose={()=>{setShowCreateLobby(false)}} handleCreate={createLobby}/>
     <Container>
       <Row><Col>
         <h1>WikiSlam!</h1>

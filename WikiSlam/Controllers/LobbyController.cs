@@ -89,7 +89,8 @@ namespace WikiSlam.Controllers
             return await articleQuery.ToListAsync();
         }
 
-        [HttpGet("{code}")]
+        //Interferes with the GetLobby endpoint
+        /*[HttpGet("{code}")]
         public async Task<ActionResult<Lobby>> GetLobbyFromCode(string code)
         {
             //Lobby codes must be 3 characters
@@ -107,7 +108,7 @@ namespace WikiSlam.Controllers
                 return NotFound();
             }
             return lobby;
-        }
+        }*/
 
         [HttpPost]
         public async Task<ActionResult<LobbyCreationResponse>> CreateLobby([FromBody] AdminLogin admin)

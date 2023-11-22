@@ -23,8 +23,11 @@ export function JoinForm() {
     if(!userName) return
     setLoading(true)
     axios({url: `api/user`, method: "post", data: {name: userName, code: lobbyCode}}).then(result =>{
-      console.log(result)
-      navigate("/lobby", {state: {lobbyId: result.data.lobbyId, user: result.data, lobbyCode:lobbyCode}})
+      const newUser = result.data
+      axios.get(`api/lobby/${result.data.lobbyId}`).then(res => {
+        navigate("/lobby", {state: {lobby:res.data, user: newUser}})
+      })
+      
     }).catch(result => {
       console.log(result)
       if(result.response.status === 404){

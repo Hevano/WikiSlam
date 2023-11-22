@@ -6,11 +6,20 @@ import {convert} from 'html-to-text'
 import axios from 'axios';
 export function Game() {
 
-  // const location = useLocation()
-  // const lobbyId = location.state.lobbyId
-  // const lobbyCode = location.state.lobbyCode
-  // const users = location.state.users
-  // const user = location.state.user
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  if(!location.state){
+    navigate("/")
+  }
+
+  const lobby = location.state.lobby
+  const user = location.state.user
+  const users = location.state.users
+
+  if(!lobby || !users || !user){
+    navigate("/")
+  }
 
   const [article, setArticle] = useState()
   const [articleLoading, setArticleLoading] = useState(true)
@@ -27,12 +36,11 @@ export function Game() {
         strength: 0,
         dexterity: 0,
         willpower: 0,
+        userId: user.id,
         // For front end use only
         image: (res.data.originalimage) ? res.data.originalimage.source : null,
         desc: res.data.description
       }
-
-      console.log(res.data)
 
       axios({url: `https://en.wikipedia.org/w/api.php?format=json&action=parse&page=${res.data.titles.canonical}&prop=text|categories&origin=*`, method: "get"}).then(res => {
 
@@ -44,24 +52,23 @@ export function Game() {
             { selector: 'a.button', format: 'skip' }
           ]
         });
-    
+
         console.log(text)
     
         newArticle.strength = Math.ceil(10 * text.length / 5264)
         newArticle.dexterity = res.data.parse.categories.length
-        newArticle.willpower = text.match(/[\^]/gm).length //Counts the number of references the article has
-
-        console.log("willpower matches", text.match("\^"))
-
-        console.log(newArticle)
-
-        let qList = htmlToQuoteList(html)
-
-        console.log(qList)
+        newArticle.willpower = text.match(/[\^]/gm).length
   
         setArticle(newArticle)
-        setArticleQuestions(qList)
+        setArticleQuestions(htmlToQuoteList(html))
         setArticleLoading(false)
+
+        delete newArticle.image
+        delete newArticle.desc
+
+        axios({url: `api/article`, method: "post", data: newArticle}).then(res => {
+          console.log(res)
+        })
       })
     })
   }

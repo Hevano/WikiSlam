@@ -56,11 +56,12 @@ namespace WikiSlam.Controllers
             }
 
             //Remove any other articles this user owns
-            _dbContext.Articles.RemoveRange(
-                await _dbContext.Articles.Where(a => a.UserId == article.UserId).ToListAsync()
-            );
-
-            await _dbContext.SaveChangesAsync();
+            var userArticles = _dbContext.Articles.Where(a => a.UserId == article.UserId).ToList();
+            if (!userArticles.IsNullOrEmpty())
+            {
+                _dbContext.Articles.RemoveRange(userArticles);
+                await _dbContext.SaveChangesAsync();
+            }
 
             _dbContext.Articles.Add(article);
             await _dbContext.SaveChangesAsync();

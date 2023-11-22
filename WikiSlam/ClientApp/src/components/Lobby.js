@@ -14,9 +14,7 @@ import axios from 'axios'
 export function Lobby() {
 
   const location = useLocation()
-  const lobbyId = location.state.lobbyId
-  const lobbyCode = location.state.lobbyCode
-
+  const lobby = location.state.lobby
   const navigate = useNavigate()
 
   const [user, setUser] = useState(location.state.user)
@@ -43,8 +41,9 @@ export function Lobby() {
   }, [lastMessage]);
 
   useEffect(()=>{
-    axios.get(`api/lobby/${lobbyId}/users`).then(res => {
+    axios.get(`api/lobby/${lobby.id}/users`).then(res => {
       setLoading(false)
+      console.log(res)
       setUsers(res.data)
     })
   },[])
@@ -55,7 +54,7 @@ export function Lobby() {
     setUsers(updatedItems);
 
     axios({url: `api/user/${u.id}`, method: "delete"}).then(result =>{
-      axios.get(`api/lobby/${lobbyId}/users`).then(res => {
+      axios.get(`api/lobby/${lobby.id}/users`).then(res => {
         setLoading(false)
         setUsers(res.data)
       })
@@ -79,14 +78,18 @@ export function Lobby() {
     })
   }
 
+  function startGame(){
+    navigate("/game", {state:{lobby: lobby, user: user, users: users}})
+  }
+
   return (
     <Container fluid>
       <EditNameModal show={isEditingName} handleClose={()=>{setEditingName(false)}} handleCreate={changeName} modalTitle={"Change Name"} modalLabel={"Create a new name"}/>
       <Row>
         <Col>
           <h3>Lobby</h3>
-          <h1>Code: {lobbyCode ? lobbyCode : "???"}</h1>
-          <Button variant='primary'>Start Game</Button>
+          <h1>Code: {lobby.code ? lobby.code : "???"}</h1>
+          <Button variant='primary' onClick={startGame}>Start Game</Button>
           <Button variant='secondary' onClick={leave}>Leave Lobby</Button>
         </Col>
         <Col>
