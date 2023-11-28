@@ -40,7 +40,7 @@ namespace WikiSlam.Controllers
             {
                 return NotFound();
             }
-            return await _dbContext.Articles.ToListAsync();
+            return _dbContext.Articles.ToList(); //TODO: figure out why this can't be async
         }
 
         [HttpPost]

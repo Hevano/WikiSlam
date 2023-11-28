@@ -62,6 +62,60 @@ namespace WikiSlam.Controllers
             return await _dbContext.Users.Where(user => user.LobbyId == id).ToListAsync();
         }
 
+        [Route("{id}/results")]
+        [HttpGet]
+        public async Task<ActionResult<RoundResults>> GetLobbyResults(int id)
+        {
+            if (_dbContext.Lobbies.IsNullOrEmpty())
+            {
+                return NotFound();
+            }
+            var lobby = await _dbContext.Lobbies.FindAsync(id);
+            if (lobby == null)
+            {
+                return NotFound();
+            }
+
+            /*if(lobby.RoundStartTimestamp + lobby.RoundDuration < DateTime.Now)
+            {
+                return BadRequest();
+            }*/
+
+            var articles = await _dbContext.Users
+                .Where(user => user.LobbyId == id)
+                .Join(
+                    _dbContext.Articles,
+                    user => user.Id,
+                    article => article.UserId,
+                    (user, article) => article
+                 ).ToListAsync();
+
+            var roundResults = new RoundResults(id);
+
+            foreach(var article in articles)
+            {
+                var result = new ResultEntry(article, await _dbContext.Users.FindAsync(article.UserId));
+                foreach (var enemyArticle in articles)
+                {
+                    if (article == enemyArticle) continue;
+                    int matchupScore = article.Compare(enemyArticle);
+                    result.Score += matchupScore;
+                    result.WinLossRecord.Add(enemyArticle.Id, matchupScore);
+                }
+                roundResults.resultsList.Add(result);
+            }
+
+            roundResults.resultsList.Sort((lhs, rhs) => rhs.Score.CompareTo(lhs.Score));
+            roundResults.Winner = roundResults.resultsList.First().Article.Id;
+
+            foreach(var r in roundResults.resultsList)
+            {
+                System.Console.WriteLine(r.Score);
+            }
+
+            return roundResults;
+        }
+
         [Route("{id}/articles")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Article>>> GetLobbyArticles(int id)
@@ -120,10 +174,11 @@ namespace WikiSlam.Controllers
             }
 
             //Create Lobby
-            LobbyCodeIndex += System.Random.Shared.Next(1, 5);
             var lobby = new Lobby();
+            LobbyCodeIndex += System.Random.Shared.Next(1, 5);
             lobby.Code = Lobby.IdToCode(LobbyCodeIndex);
             lobby.CreationTimestamp = DateTime.Now;
+            lobby.RoundDuration = new TimeSpan(0,2,0);
             var createdLobby = _dbContext.Lobbies.Add(lobby);
             await _dbContext.SaveChangesAsync();
 

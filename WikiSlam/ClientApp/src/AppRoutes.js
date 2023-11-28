@@ -4,6 +4,7 @@ import { Home } from "./components/Home";
 import { JoinForm } from "./components/JoinForm";
 import { Lobby } from "./components/Lobby";
 import { Game } from "./components/Game";
+import Results from "./components/Results";
 
 const AppRoutes = [
   {
@@ -21,6 +22,10 @@ const AppRoutes = [
   {
     path: '/game',
     element: <Game/>
+  },
+  {
+    path: '/results',
+    element: <Results/>
   },
   {
     path: '/counter',

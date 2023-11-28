@@ -4,7 +4,6 @@ import useWebSocket, { ReadyState } from 'react-use-websocket';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import ListGroup from 'react-bootstrap/ListGroup';
 import Button from 'react-bootstrap/Button'
 import { LobbyList } from './LobbyList';
 import { EditNameModal } from './EditNameModal';
@@ -24,18 +23,43 @@ export function Lobby() {
 
   //TODO: Use the proxy routing somehow
   const [socketUrl, setSocketUrl] = useState('ws://localhost:3000/ws');
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
+    onOpen: () => {console.log("opended!")},
+    onClose: () => {console.log("closed!")}
+  });
+
 
   useEffect(() => {
     sendMessage(JSON.stringify({userId: user.id, actionType:"join"}))
   }, []);
 
   useEffect(() => {
-    if (lastMessage !== null) {
+    if (lastMessage !== null && users != null) {
       let msgJson = JSON.parse(lastMessage.data)
-      if(msgJson.actionType === "join"){
-        const newUserArray = [...users.slice(), msgJson.user]
-        setUsers(newUserArray)
+
+      switch(msgJson.actionType){
+        case "join":
+          //Convert keys to lowercase
+          let keys = Object.keys(msgJson.user)
+          for(var keyIndex in keys){
+            let key = keys[keyIndex]
+            msgJson.user[key.toLowerCase()] = msgJson.user[key]
+            delete msgJson.user[key]
+          }
+
+          if(user.id === msgJson.user.id) return
+          let newUserArray = [...users, msgJson.user]
+          setUsers(newUserArray)
+          break
+        case "leave":
+          let filteredUserArray = users.filter((u)=>{ return u.id !== msgJson.user.Id})
+          setUsers(filteredUserArray)
+        case "start":
+          startGame()
+          break
+        default:
+          console.log("UNEXPECTED WEBSOCKET ACTION")
+          break
       }
     }
   }, [lastMessage]);
@@ -43,6 +67,7 @@ export function Lobby() {
   useEffect(()=>{
     axios.get(`api/lobby/${lobby.id}/users`).then(res => {
       setLoading(false)
+      console.log(res.data)
       setUsers(res.data)
     })
   },[])
@@ -62,6 +87,7 @@ export function Lobby() {
 
   function leave(){
     axios({url: `api/user/${user.id}`, method: "delete"}).then(result =>{
+      sendMessage(JSON.stringify({userId: user.id, actionType:"leave"}))
       navigate("/")
     })
   }
@@ -78,6 +104,7 @@ export function Lobby() {
   }
 
   function startGame(){
+    sendMessage(JSON.stringify({userId: user.id, actionType:"start"}))
     navigate("/game", {state:{lobby: lobby, user: user, users: users}})
   }
 
@@ -88,7 +115,7 @@ export function Lobby() {
         <Col>
           <h3>Lobby</h3>
           <h1>Code: {lobby.code ? lobby.code : "???"}</h1>
-          <Button variant='primary' onClick={startGame}>Start Game</Button>
+          {user.isAdmin && <Button variant='primary' onClick={startGame}>Start Game</Button>}
           <Button variant='secondary' onClick={leave}>Leave Lobby</Button>
         </Col>
         <Col>

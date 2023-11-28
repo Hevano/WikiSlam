@@ -4,42 +4,109 @@ import { Container, Row, Col, ListGroup, Card, Stack, Badge, Button, ProgressBar
 import QuestionBox from './QuestionBox';
 import {convert} from 'html-to-text'
 import axios from 'axios';
-export function Game() {
+import useWebSocket, { ReadyState } from 'react-use-websocket';
+export function Game({lobby, user, users}) {
 
-  const location = useLocation()
   const navigate = useNavigate()
+  const location = useLocation()
+  
 
   if(!location.state){
     navigate("/")
   }
 
+
   const lobby = location.state.lobby
-  const user = location.state.user
-  const users = location.state.users
+  const [user, setUser] = useState(location.state.user)
+  const [users, setUsers] = useState(location.state.users)
 
   if(!lobby || !users || !user){
     navigate("/")
   }
-
+  
   const [article, setArticle] = useState()
   const [articleId, setArticleId] = useState()
   const [articleLoading, setArticleLoading] = useState(true)
   const [articleQuestions, setArticleQuestions] = useState([])
   const [randomQuestions, setRandomQuestions] = useState([])
   const [questionsLoading, setQuestionLoading] = useState(true)
-
   const [timerProgress, setTimerProgress] = useState(0)
+  const [lobbyArticles, setLobbyArticles] = useState({})
+
+  const [socketUrl, setSocketUrl] = useState('ws://localhost:3000/ws');
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
+    onOpen: () => {console.log("opended!")},
+    onClose: () => {console.log("closed!")}
+  });
+
+  useEffect(() => {
+    sendMessage(JSON.stringify({userId: user.id, actionType:"join"}))
+  }, []);
+
+  useEffect(() => {
+    if (lastMessage !== null && users != null) {
+      let msgJson = JSON.parse(lastMessage.data)
+
+      switch(msgJson.actionType){
+        case "join":
+          //Convert keys to lowercase
+          let keys = Object.keys(msgJson.user)
+          for(var keyIndex in keys){
+            let key = keys[keyIndex]
+            msgJson.user[key.toLowerCase()] = msgJson.user[key]
+            delete msgJson.user[key]
+          }
+
+          if(user.id === msgJson.user.id) return
+          let newUserArray = [...users, msgJson.user]
+          setUsers(newUserArray)
+          break
+        case "leave":
+          let filteredUserArray = users.filter((u)=>{ return u.id !== msgJson.user.Id})
+          setUsers(filteredUserArray)
+        case "article":
+          console.log("article case")
+          let newLobbyArticles  = lobbyArticles
+          newLobbyArticles[msgJson.article.userId] = msgJson.article
+          setLobbyArticles(newLobbyArticles)
+          let sortedUsers = users
+          sortedUsers.sort((lhs, rhs)=> {
+            return (newLobbyArticles[lhs.id] ? newLobbyArticles[lhs.id].level : 0) - (newLobbyArticles[rhs.id] ? newLobbyArticles[rhs.id].level : 0)
+          });
+          console.log("articles", newLobbyArticles)
+          setUsers(sortedUsers)
+          break
+        default:
+          console.log("UNEXPECTED WEBSOCKET ACTION")
+          break
+      }
+    }
+  }, [lastMessage]);
 
   useEffect(()=>{
+    let duration = lobby.roundDuration.split(":")
+    duration = (parseInt(duration[0]) * 3600) + (parseInt(duration[1]) * 60) + (parseInt(duration[2]))
+    let time = 0;
     const interval = setInterval(() => {
-      setTimerProgress(timerProgress => timerProgress + 0.5)
-      if(timerProgress > 100){
+      setTimerProgress(t => t + (0.005 * duration))
+      time += 0.005 * duration
+      if(time > 100){
         clearInterval(interval)
-        alert("GAME OVER")
+        //navigate("/results", {state:{lobby: lobby, user: user, users: users}})
       } 
     }, 500)
     return () => clearInterval(interval);
   }, [])
+
+  //Update the server whenever the article gets updated
+  useEffect(()=>{
+    axios({url: `api/article`, method: "post", data: article}).then(res => {
+      setArticleId(res.data.id)
+      getQuestions()
+    })
+    sendMessage(JSON.stringify({userId: user.id, article: article, actionType:"article"}))
+    console.log("updated article")
+  }, [article])
 
   function getArticle(){
     setArticleLoading(true)
@@ -67,8 +134,6 @@ export function Game() {
             { selector: 'a.button', format: 'skip' }
           ]
         });
-
-        console.log(text)
     
         newArticle.strength = Math.ceil(10 * text.length / 5264)
         newArticle.dexterity = res.data.parse.categories.length
@@ -76,18 +141,13 @@ export function Game() {
   
         setArticle(newArticle)
         let quoteList = htmlToQuoteList(html)
-        console.log(quoteList)
         setArticleQuestions(quoteList)
         setArticleLoading(false)
 
-        //delete newArticle.image
-        //delete newArticle.desc
-
-        axios({url: `api/article`, method: "post", data: newArticle}).then(res => {
-          console.log(res)
-          setArticleId(res.data.id)
-          getQuestions()
-        })
+        // axios({url: `api/article`, method: "post", data: newArticle}).then(res => {
+        //   setArticleId(res.data.id)
+        //   getQuestions()
+        // })
       })
     })
   }
@@ -119,8 +179,14 @@ export function Game() {
 
     //Place real quote at random index
     let articleQuestion = {correctAnswer: true, text: articleQuestions[Math.floor(Math.random() * articleQuestions.length)]}
+
+    console.log(articleQuestions)
+    console.log(articleQuestion)
+
     let randomIndex = Math.floor(Math.random() * 4)
     newQuestions.splice(randomIndex,0,articleQuestion)
+
+    console.log(newQuestions)
 
     
     setRandomQuestions(newQuestions)
@@ -169,11 +235,7 @@ export function Game() {
         break
     }
 
-    console.log(updatedArticle)
     setArticle(updatedArticle)
-
-    //delete updatedArticle.image
-    //delete updatedArticle.desc
 
     updatedArticle.id = articleId
     updatedArticle.userId = user.id
@@ -181,7 +243,7 @@ export function Game() {
     getQuestions()
 
     axios({method:"put", url:`api/article/${articleId}`, data:updatedArticle}).then(res =>{
-      console.log(res)
+      //console.log(res)
     })
   }
 
@@ -191,7 +253,9 @@ export function Game() {
       <Col className='color-primary col-2'>
         <h1 style={{color:"white", textAlign:"center"}}>WikiSlam</h1>
         <ListGroup>
-          {<ListGroup.Item>Player 1</ListGroup.Item>}
+          {users.map((u)=>{
+            return (<ListGroup.Item>{u.name} {lobbyArticles[u.id] && <Badge>{lobbyArticles[u.id].level}</Badge>}</ListGroup.Item>)
+          })}
         </ListGroup>
       </Col>
       <Col>
@@ -202,7 +266,7 @@ export function Game() {
             <Card style={{width:"60%"}} className='h-5'>
               <Card.Body>
                 {(articleLoading) ? <Placeholder as={Card.Title} animation="glow"><Placeholder xs={12} /></Placeholder> : <Card.Title className="text-center">{article.title}</Card.Title>}
-                <Card.Img style={{width: "100%", height: "15vw", "object-fit": "cover"}} variant="bottom" src={(!articleLoading && article.image) ? article.image : "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"} />
+                <Card.Img className='mx-auto' style={{width: "auto", height: "15vw", "objectFit": "cover"}} variant="bottom" src={(!articleLoading && article.image) ? article.image : "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"} />
                 <Card.Text>
                   <div className='mx-auto'>{(articleLoading) ? "" : article.desc}</div>
                   <Stack direction='horizontal'>

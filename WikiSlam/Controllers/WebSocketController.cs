@@ -61,10 +61,15 @@ namespace WikiSlam.Controllers
 
             if(user != null)
             {
+                JObject broadcastMsg = new JObject();
+                broadcastMsg.Add("user", JToken.FromObject(user, new JsonSerializer()));
+                broadcastMsg.Add("actionType", "leave");
+                await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
                 _userWebSockets.TryRemove(user.Id, out var ws);
             }
         }
 
+        //TODO: Time out connections after round duration passes with no input
         private async Task<bool> HandleMessage(string msg, WebSocket webSocket, User? user)
         {
             //parse msg as json
@@ -82,6 +87,10 @@ namespace WikiSlam.Controllers
             {
                 user = foundUser;
                 _userWebSockets.TryAdd(user.Id, webSocket);
+            } else if (_userWebSockets[user.Id] != webSocket) //Replace websocket if we need to
+            {
+                await _userWebSockets[user.Id].CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                _userWebSockets[user.Id] = webSocket;
             }
 
             //perform logic based on the action type
@@ -91,13 +100,20 @@ namespace WikiSlam.Controllers
                 switch ((string)actionType)
                 {
                     case "join":
-                        broadcastMsg.Add("user", JToken.FromObject(user));
+                        broadcastMsg.Add("user", JToken.FromObject(user, new JsonSerializer()));
                         broadcastMsg.Add("actionType", "join");
                         await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
                         break;
                     case "start":
                         broadcastMsg = new JObject();
                         broadcastMsg["actionType"] = "start";
+                        await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
+                        break;
+                    case "leave":
+                        return false;
+                    case "article":
+                        broadcastMsg.Add("user", jsonMsg.GetValue("article"));
+                        broadcastMsg.Add("actionType", "article");
                         await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
                         break;
                     default:

@@ -14,7 +14,24 @@
         public short Dexterity { get; set; }
         public short Willpower { get; set; }
 
-        //Navigation property
-        //public virtual User User { get; set; }
+        //Returns 1 if better, -1 if worse, 0 if equal
+        public int Compare(Article other)
+        {
+            int score = 0;
+
+            //Having a greater stat than other gives +1 score, -1 if less stat, and +0 if equal
+            score += Math.Min(Math.Max(Strength - other.Strength, -1), 1);
+            score += Math.Min(Math.Max(Dexterity - other.Dexterity, -1), 1);
+            score += Math.Min(Math.Max(Willpower - other.Willpower, -1), 1);
+
+            //If still tied, compare level
+            if(score == 0)
+            {
+                score += Math.Min(Math.Max(Level - other.Level, -1), 1);
+            }
+
+            //Return score bounded between 1 and negative 1
+            return Math.Min(Math.Max(score, -1), 1);
+        }
     }
 }
