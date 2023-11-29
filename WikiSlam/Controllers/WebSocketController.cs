@@ -112,7 +112,7 @@ namespace WikiSlam.Controllers
                     case "leave":
                         return false;
                     case "article":
-                        broadcastMsg.Add("user", jsonMsg.GetValue("article"));
+                        broadcastMsg.Add("article", jsonMsg.GetValue("article"));
                         broadcastMsg.Add("actionType", "article");
                         await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
                         break;

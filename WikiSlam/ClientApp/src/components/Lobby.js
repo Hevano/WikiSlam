@@ -9,6 +9,14 @@ import { LobbyList } from './LobbyList';
 import { EditNameModal } from './EditNameModal';
 import { Spinner } from 'reactstrap';
 import axios from 'axios'
+import Results from './Results';
+import {Game} from './Game'
+
+const GameStates = {
+  Lobby: 'Lobby',
+  Game: 'Game',
+  Results: 'Results'
+};
 
 export function Lobby() {
 
@@ -20,22 +28,23 @@ export function Lobby() {
   const [users, setUsers] = useState()
   const [isLoading, setLoading] = useState(true)
   const [isEditingName, setEditingName] = useState(false)
+  const [gameState, setGameState] = useState(GameStates.Lobby)
+  
 
   //TODO: Use the proxy routing somehow
-  const [socketUrl, setSocketUrl] = useState('ws://localhost:3000/ws');
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
+  const webSocket = useWebSocket('ws://localhost:3000/ws', {
     onOpen: () => {console.log("opended!")},
-    onClose: () => {console.log("closed!")}
+    onClose: () => { console.log("closed!"); webSocket.sendMessage(JSON.stringify({userId: user.id, actionType:"leave"}))}
   });
 
 
   useEffect(() => {
-    sendMessage(JSON.stringify({userId: user.id, actionType:"join"}))
+    webSocket.sendMessage(JSON.stringify({userId: user.id, actionType:"join"}))
   }, []);
 
   useEffect(() => {
-    if (lastMessage !== null && users != null) {
-      let msgJson = JSON.parse(lastMessage.data)
+    if (webSocket.lastMessage !== null && users != null) {
+      let msgJson = JSON.parse(webSocket.lastMessage.data)
 
       switch(msgJson.actionType){
         case "join":
@@ -55,14 +64,14 @@ export function Lobby() {
           let filteredUserArray = users.filter((u)=>{ return u.id !== msgJson.user.Id})
           setUsers(filteredUserArray)
         case "start":
-          startGame()
+          setGameState(GameStates.Game)
           break
         default:
           console.log("UNEXPECTED WEBSOCKET ACTION")
           break
       }
     }
-  }, [lastMessage]);
+  }, [webSocket.lastMessage]);
 
   useEffect(()=>{
     axios.get(`api/lobby/${lobby.id}/users`).then(res => {
@@ -87,7 +96,6 @@ export function Lobby() {
 
   function leave(){
     axios({url: `api/user/${user.id}`, method: "delete"}).then(result =>{
-      sendMessage(JSON.stringify({userId: user.id, actionType:"leave"}))
       navigate("/")
     })
   }
@@ -104,24 +112,40 @@ export function Lobby() {
   }
 
   function startGame(){
-    sendMessage(JSON.stringify({userId: user.id, actionType:"start"}))
-    navigate("/game", {state:{lobby: lobby, user: user, users: users}})
+    webSocket.sendMessage(JSON.stringify({userId: user.id, actionType:"start"}))
+    setGameState(GameStates.Game)
   }
 
-  return (
-    <Container fluid>
-      <EditNameModal show={isEditingName} handleClose={()=>{setEditingName(false)}} handleCreate={changeName} modalTitle={"Change Name"} modalLabel={"Create a new name"}/>
-      <Row>
-        <Col>
-          <h3>Lobby</h3>
-          <h1>Code: {lobby.code ? lobby.code : "???"}</h1>
-          {user.isAdmin && <Button variant='primary' onClick={startGame}>Start Game</Button>}
-          <Button variant='secondary' onClick={leave}>Leave Lobby</Button>
-        </Col>
-        <Col>
-          {isLoading ? <Spinner/> : <LobbyList loggedInUser={user} users={users} isAdmin={user.isAdmin} onCloseCallback={removeUsers} onEditCallback={()=>{setEditingName(true)}} />}
-        </Col>
-      </Row>
-    </Container>
-  )
+  switch(gameState){
+    case GameStates.Lobby:
+      return (
+        <Container fluid>
+          <EditNameModal show={isEditingName} handleClose={()=>{setEditingName(false)}} handleCreate={changeName} modalTitle={"Change Name"} modalLabel={"Create a new name"}/>
+          <Row>
+            <Col>
+              <h3>Lobby</h3>
+              <h1>Code: {lobby.code ? lobby.code : "???"}</h1>
+              {user.isAdmin && <Button variant='primary' onClick={startGame}>Start Game</Button>}
+              <Button variant='secondary' onClick={leave}>Leave Lobby</Button>
+            </Col>
+            <Col>
+              {isLoading ? <Spinner/> : <LobbyList loggedInUser={user} users={users} isAdmin={user.isAdmin} onCloseCallback={removeUsers} onEditCallback={()=>{setEditingName(true)}} />}
+            </Col>
+          </Row>
+        </Container>
+      )
+    case GameStates.Game:
+      return <Game 
+        user={user} 
+        lobby={lobby} 
+        users={users} 
+        webSocket={webSocket} 
+        toResultsCallback={()=>{setGameState(GameStates.Results)}} 
+        sortUsersCallback={(userList)=>{setUsers(userList)}}
+      />
+    case GameStates.Results:
+      return <Results/> //TODO: add props
+  }
+
+ 
 }

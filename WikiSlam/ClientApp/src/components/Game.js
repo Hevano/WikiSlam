@@ -1,30 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, ListGroup, Card, Stack, Badge, Button, ProgressBar, Placeholder, Spinner } from 'react-bootstrap';
 import QuestionBox from './QuestionBox';
 import {convert} from 'html-to-text'
 import axios from 'axios';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
-export function Game({lobby, user, users}) {
-
-  const navigate = useNavigate()
-  const location = useLocation()
+export function Game({lobby, user, users, webSocket, toResultsCallback, sortUsersCallback}) {
   
-
-  if(!location.state){
-    navigate("/")
-  }
-
-
-  const lobby = location.state.lobby
-  const [user, setUser] = useState(location.state.user)
-  const [users, setUsers] = useState(location.state.users)
-
-  if(!lobby || !users || !user){
-    navigate("/")
-  }
   
-  const [article, setArticle] = useState()
+  const [article, setArticle] = useState({})
   const [articleId, setArticleId] = useState()
   const [articleLoading, setArticleLoading] = useState(true)
   const [articleQuestions, setArticleQuestions] = useState([])
@@ -33,39 +15,12 @@ export function Game({lobby, user, users}) {
   const [timerProgress, setTimerProgress] = useState(0)
   const [lobbyArticles, setLobbyArticles] = useState({})
 
-  const [socketUrl, setSocketUrl] = useState('ws://localhost:3000/ws');
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
-    onOpen: () => {console.log("opended!")},
-    onClose: () => {console.log("closed!")}
-  });
-
+  //Handles websocket logic when new message comes in
   useEffect(() => {
-    sendMessage(JSON.stringify({userId: user.id, actionType:"join"}))
-  }, []);
-
-  useEffect(() => {
-    if (lastMessage !== null && users != null) {
-      let msgJson = JSON.parse(lastMessage.data)
-
+    if (webSocket.lastMessage !== null && users != null) {
+      let msgJson = JSON.parse(webSocket.lastMessage.data)
       switch(msgJson.actionType){
-        case "join":
-          //Convert keys to lowercase
-          let keys = Object.keys(msgJson.user)
-          for(var keyIndex in keys){
-            let key = keys[keyIndex]
-            msgJson.user[key.toLowerCase()] = msgJson.user[key]
-            delete msgJson.user[key]
-          }
-
-          if(user.id === msgJson.user.id) return
-          let newUserArray = [...users, msgJson.user]
-          setUsers(newUserArray)
-          break
-        case "leave":
-          let filteredUserArray = users.filter((u)=>{ return u.id !== msgJson.user.Id})
-          setUsers(filteredUserArray)
         case "article":
-          console.log("article case")
           let newLobbyArticles  = lobbyArticles
           newLobbyArticles[msgJson.article.userId] = msgJson.article
           setLobbyArticles(newLobbyArticles)
@@ -73,16 +28,16 @@ export function Game({lobby, user, users}) {
           sortedUsers.sort((lhs, rhs)=> {
             return (newLobbyArticles[lhs.id] ? newLobbyArticles[lhs.id].level : 0) - (newLobbyArticles[rhs.id] ? newLobbyArticles[rhs.id].level : 0)
           });
-          console.log("articles", newLobbyArticles)
-          setUsers(sortedUsers)
+          sortUsersCallback(sortedUsers)
           break
         default:
           console.log("UNEXPECTED WEBSOCKET ACTION")
           break
       }
     }
-  }, [lastMessage]);
+  }, [webSocket.lastMessage]);
 
+  //Sets up the timer
   useEffect(()=>{
     let duration = lobby.roundDuration.split(":")
     duration = (parseInt(duration[0]) * 3600) + (parseInt(duration[1]) * 60) + (parseInt(duration[2]))
@@ -92,7 +47,7 @@ export function Game({lobby, user, users}) {
       time += 0.005 * duration
       if(time > 100){
         clearInterval(interval)
-        //navigate("/results", {state:{lobby: lobby, user: user, users: users}})
+        toResultsCallback()
       } 
     }, 500)
     return () => clearInterval(interval);
@@ -100,14 +55,16 @@ export function Game({lobby, user, users}) {
 
   //Update the server whenever the article gets updated
   useEffect(()=>{
+    if(!article) return;
+    console.log("updated article", article)
     axios({url: `api/article`, method: "post", data: article}).then(res => {
       setArticleId(res.data.id)
       getQuestions()
     })
-    sendMessage(JSON.stringify({userId: user.id, article: article, actionType:"article"}))
-    console.log("updated article")
-  }, [article])
+    webSocket.sendMessage(JSON.stringify({userId: user.id, article: article, actionType:"article"}))
+  }, [article, article.level])
 
+  //Creates new article and a set of 4 questions
   function getArticle(){
     setArticleLoading(true)
     axios.get(`https://en.wikipedia.org/api/rest_v1/page/random/summary`).then(res => {
@@ -134,24 +91,22 @@ export function Game({lobby, user, users}) {
             { selector: 'a.button', format: 'skip' }
           ]
         });
+
+        let citations = text.match(/[\^]/gm)
     
         newArticle.strength = Math.ceil(10 * text.length / 5264)
         newArticle.dexterity = res.data.parse.categories.length
-        newArticle.willpower = text.match(/[\^]/gm).length
-  
+        newArticle.willpower = citations ? citations.length : 0
+        console.log("new Article", newArticle)
         setArticle(newArticle)
         let quoteList = htmlToQuoteList(html)
         setArticleQuestions(quoteList)
         setArticleLoading(false)
-
-        // axios({url: `api/article`, method: "post", data: newArticle}).then(res => {
-        //   setArticleId(res.data.id)
-        //   getQuestions()
-        // })
       })
     })
   }
 
+  //Generates 4 random quote questions, 1 coming from the current article
   async function getQuestions(){
     setQuestionLoading(true)
 
@@ -180,20 +135,15 @@ export function Game({lobby, user, users}) {
     //Place real quote at random index
     let articleQuestion = {correctAnswer: true, text: articleQuestions[Math.floor(Math.random() * articleQuestions.length)]}
 
-    console.log(articleQuestions)
-    console.log(articleQuestion)
-
     let randomIndex = Math.floor(Math.random() * 4)
     newQuestions.splice(randomIndex,0,articleQuestion)
 
-    console.log(newQuestions)
-
-    
     setRandomQuestions(newQuestions)
     setQuestionLoading(false)
   }
   
 
+  //converts html from wikipedia api to list of text quotes
   function htmlToQuoteList(htmlString){
     const text = convert(htmlString, {
       selectors: [
@@ -216,6 +166,7 @@ export function Game({lobby, user, users}) {
     return matches
   }
 
+  //Callback for when user selects an answer to a question
   function answerQuestion(wasCorrect){
     const updatedArticle = article
     updatedArticle.level += (wasCorrect) ? 1 : -1
