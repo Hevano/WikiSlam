@@ -26,12 +26,12 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
           setLobbyArticles(newLobbyArticles)
           let sortedUsers = users
           sortedUsers.sort((lhs, rhs)=> {
-            return (newLobbyArticles[lhs.id] ? newLobbyArticles[lhs.id].level : 0) - (newLobbyArticles[rhs.id] ? newLobbyArticles[rhs.id].level : 0)
+            return (newLobbyArticles[rhs.id] ? newLobbyArticles[rhs.id].level : 0) - (newLobbyArticles[lhs.id] ? newLobbyArticles[lhs.id].level : 0)
           });
           sortUsersCallback(sortedUsers)
           break
         default:
-          console.log("UNEXPECTED WEBSOCKET ACTION")
+          console.log("UNEXPECTED WEBSOCKET ACTION", msgJson.actionType)
           break
       }
     }
@@ -53,20 +53,23 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
     return () => clearInterval(interval);
   }, [])
 
-  //Update the server whenever the article gets updated
+  //Clear any round-specific state that may exist from previous round
   useEffect(()=>{
-    if(!article) return;
-    console.log("updated article", article)
-    axios({url: `api/article`, method: "post", data: article}).then(res => {
-      setArticleId(res.data.id)
+    setLobbyArticles({})
+    setArticle({})
+  },[])
+
+  //get new questions once new article has been set (done here to avoid selecting questions before article questions are populated in the state)
+  useEffect(()=>{
+    if(articleQuestions && articleQuestions.length > 0){
       getQuestions()
-    })
-    webSocket.sendMessage(JSON.stringify({userId: user.id, article: article, actionType:"article"}))
-  }, [article, article.level])
+    }
+  }, [articleId])
 
   //Creates new article and a set of 4 questions
   function getArticle(){
     setArticleLoading(true)
+    setQuestionLoading(true)
     axios.get(`https://en.wikipedia.org/api/rest_v1/page/random/summary`).then(res => {
 
       const newArticle = {
@@ -102,6 +105,10 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
         let quoteList = htmlToQuoteList(html)
         setArticleQuestions(quoteList)
         setArticleLoading(false)
+        webSocket.sendMessage(JSON.stringify({userId: user.id, article: newArticle, actionType:"article"}))
+        axios({url: `api/article`, method: "post", data: newArticle}).then(res => {
+          setArticleId(res.data.id)
+        })
       })
     })
   }
@@ -187,12 +194,14 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
     }
 
     setArticle(updatedArticle)
+    
 
     updatedArticle.id = articleId
     updatedArticle.userId = user.id
 
     getQuestions()
 
+    webSocket.sendMessage(JSON.stringify({userId: user.id, article: updatedArticle, actionType:"article"}))
     axios({method:"put", url:`api/article/${articleId}`, data:updatedArticle}).then(res =>{
       //console.log(res)
     })
@@ -205,7 +214,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
         <h1 style={{color:"white", textAlign:"center"}}>WikiSlam</h1>
         <ListGroup>
           {users.map((u)=>{
-            return (<ListGroup.Item>{u.name} {lobbyArticles[u.id] && <Badge>{lobbyArticles[u.id].level}</Badge>}</ListGroup.Item>)
+            return (<ListGroup.Item key={u.id}>{u.name} {lobbyArticles[u.id] && <Badge>{lobbyArticles[u.id].level}</Badge>}</ListGroup.Item>)
           })}
         </ListGroup>
       </Col>

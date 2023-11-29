@@ -30,6 +30,12 @@
                 score += Math.Min(Math.Max(Level - other.Level, -1), 1);
             }
 
+            //If STILL tied, compare sum of all stats
+            if(score == 0)
+            {
+                score += (Strength + Dexterity + Willpower) - (other.Strength + other.Dexterity + other.Willpower);
+            }
+
             //Return score bounded between 1 and negative 1
             return Math.Min(Math.Max(score, -1), 1);
         }

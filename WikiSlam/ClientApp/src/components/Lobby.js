@@ -144,7 +144,12 @@ export function Lobby() {
         sortUsersCallback={(userList)=>{setUsers(userList)}}
       />
     case GameStates.Results:
-      return <Results/> //TODO: add props
+      return <Results 
+      user={user} 
+      lobby={lobby} 
+      users={users}
+      playAgainCallback={()=>{setGameState(GameStates.Lobby); console.log("play again")}}
+    />
   }
 
  
