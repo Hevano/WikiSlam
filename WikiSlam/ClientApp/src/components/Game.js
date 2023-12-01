@@ -3,7 +3,15 @@ import { Container, Row, Col, ListGroup, Card, Stack, Badge, Button, ProgressBar
 import QuestionBox from './QuestionBox';
 import {convert} from 'html-to-text'
 import axios from 'axios';
+import { motion, useAnimate } from "framer-motion"
+import LevelBadge from './LevelBadge';
+
 export function Game({lobby, user, users, webSocket, toResultsCallback, sortUsersCallback}) {
+
+  //Animation hooks
+  const [strRef, animateStr] = useAnimate()
+  const [dexRef, animateDex] = useAnimate()
+  const [wilRef, animateWil] = useAnimate()
   
   
   const [article, setArticle] = useState({})
@@ -29,6 +37,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
             return (newLobbyArticles[rhs.id] ? newLobbyArticles[rhs.id].level : 0) - (newLobbyArticles[lhs.id] ? newLobbyArticles[lhs.id].level : 0)
           });
           sortUsersCallback(sortedUsers)
+          console.log(sortedUsers)
           break
         default:
           console.log("UNEXPECTED WEBSOCKET ACTION", msgJson.actionType)
@@ -47,7 +56,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
       time += 0.005 * duration
       if(time > 100){
         clearInterval(interval)
-        toResultsCallback()
+        //toResultsCallback()
       } 
     }, 500)
     return () => clearInterval(interval);
@@ -57,6 +66,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
   useEffect(()=>{
     setLobbyArticles({})
     setArticle({})
+    getArticle()
   },[])
 
   //get new questions once new article has been set (done here to avoid selecting questions before article questions are populated in the state)
@@ -99,7 +109,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
     
         newArticle.strength = Math.ceil(10 * text.length / 5264)
         newArticle.dexterity = res.data.parse.categories.length
-        newArticle.willpower = citations ? citations.length : 0
+        newArticle.willpower = citations ? citations.length : 1
         console.log("new Article", newArticle)
         setArticle(newArticle)
         let quoteList = htmlToQuoteList(html)
@@ -182,12 +192,15 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
     switch(randomChoice){
       case 0:
         article.strength = Math.floor(article.strength * modifier)
+        animateStr(strRef.current, {scale:[1,3.5,1]})
         break
       case 1:
         article.dexterity = Math.floor(article.dexterity * modifier)
+        animateDex(dexRef.current, {scale:[1,3.5,1]})
         break
       case 2:
         article.willpower = Math.floor(article.willpower * modifier)
+        animateWil(wilRef.current, {scale:[1,3.5,1]})
         break
       default:
         break
@@ -208,36 +221,42 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
   }
 
   return (
-    <Container fluid>
+    <Container fluid className='p-0'>
       <Row>
-      <Col className='color-primary col-2'>
+      <Col className='bg-secondary col-2 min-vh-100'>
         <h1 style={{color:"white", textAlign:"center"}}>WikiSlam</h1>
         <ListGroup>
           {users.map((u)=>{
-            return (<ListGroup.Item key={u.id}>{u.name} {lobbyArticles[u.id] && <Badge>{lobbyArticles[u.id].level}</Badge>}</ListGroup.Item>)
+            return (<ListGroup.Item key={u.id}><Stack direction='horizontal'><span>{u.name}</span> <LevelBadge spacing="ms-auto" size={1} article={lobbyArticles[u.id]} isLoading={!lobbyArticles.hasOwnProperty(u.id)}/></Stack></ListGroup.Item>)
           })}
         </ListGroup>
       </Col>
       <Col>
         <Stack>
-          <ProgressBar animated  className="m-4" now={timerProgress} />
+          <ProgressBar animated variant='warning' className="m-4" now={timerProgress} />
           <Stack direction="horizontal" gap={6}>
-            <Badge className='mx-auto'>{(articleLoading) ? <Spinner/> : `Lvl ${article.level}`}</Badge>
-            <Card style={{width:"60%"}} className='h-5'>
+            <LevelBadge spacing="mx-auto" size={3} article={article} isLoading={articleLoading}/>
+            <Card className='p-5' style={{height:"50vh"}}>
               <Card.Body>
-                {(articleLoading) ? <Placeholder as={Card.Title} animation="glow"><Placeholder xs={12} /></Placeholder> : <Card.Title className="text-center">{article.title}</Card.Title>}
-                <Card.Img className='mx-auto' style={{width: "auto", height: "15vw", "objectFit": "cover"}} variant="bottom" src={(!articleLoading && article.image) ? article.image : "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"} />
+                {(articleLoading) ? <Placeholder as={Card.Title} animation="glow" className="m-1"><Placeholder xs={12} /></Placeholder> : <Card.Title className="text-center">{article.title}</Card.Title>}
+                <Card.Img className="mx-auto" style={{"objectFit": "contain", width: "16em", height: "16em"}} src={(!articleLoading && article.image) ? article.image : "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"} />
                 <Card.Text>
-                  <div className='mx-auto'>{(articleLoading) ? "" : article.desc}</div>
+                  <div className='mx-auto text-center'>{(articleLoading) ? "" : article.desc}</div>
                   <Stack direction='horizontal'>
-                    <Badge className='mx-auto mt-4'>STR: {(article) ? article.strength : "???"}</Badge>
-                    <Badge className='mx-auto mt-4'>DEX: {(article) ? article.dexterity : "???"}</Badge>
-                    <Badge className='mx-auto mt-4'>WIL: {(article) ? article.willpower : "???"}</Badge>
+                    <Badge ref={strRef}className='mx-auto mt-4'>STR: {(!articleLoading) ? article.strength : "???"}</Badge>
+                    <Badge ref={dexRef} className='mx-auto mt-4'>DEX: {(!articleLoading) ? article.dexterity : "???"}</Badge>
+                    <Badge ref={wilRef} className='mx-auto mt-4'>WIL: {(!articleLoading) ? article.willpower : "???"}</Badge>
                   </Stack>
                 </Card.Text>
               </Card.Body>
             </Card>
-            <Button className='mx-auto' disabled={((articleLoading || questionsLoading) && false)} onClick={getArticle}>Reroll</Button>
+            <div className='mx-auto'>
+              <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
+              <Button variant="warning" className='fs-1 mt-auto mx-auto p-2' disabled={articleLoading || questionsLoading} onClick={getArticle}>🎲</Button>
+              </motion.div>
+              <p className='text-light mx-auto text-center mb-auto'>REROLL</p>
+            </div>
+            
           </Stack>
           <QuestionBox isLoading={questionsLoading} questionArray={randomQuestions} questionCallback={answerQuestion}/>
         </Stack>

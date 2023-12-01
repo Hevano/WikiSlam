@@ -22,7 +22,7 @@ namespace WikiSlam.Controllers
             _dbContext = wikiSlamContext;
         }
 
-        [Route("/ws")]
+        [Route("/socket")]
         public async Task Get()
         {
             if (HttpContext.WebSockets.IsWebSocketRequest)

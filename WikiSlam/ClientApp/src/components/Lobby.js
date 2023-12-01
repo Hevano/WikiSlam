@@ -29,10 +29,9 @@ export function Lobby() {
   const [isLoading, setLoading] = useState(true)
   const [isEditingName, setEditingName] = useState(false)
   const [gameState, setGameState] = useState(GameStates.Lobby)
-  
 
   //TODO: Use the proxy routing somehow
-  const webSocket = useWebSocket('ws://localhost:3000/ws', {
+  const webSocket = useWebSocket('ws://localhost:3000/socket', {
     onOpen: () => {console.log("opended!")},
     onClose: () => { console.log("closed!"); webSocket.sendMessage(JSON.stringify({userId: user.id, actionType:"leave"}))}
   });

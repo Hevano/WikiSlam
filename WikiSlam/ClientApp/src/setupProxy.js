@@ -10,7 +10,7 @@ const context = [
     "/weatherforecast",
     "/swagger",
     "/api",
-    "https://en.wikipedia.org/w/api.php"
+    "/socket"
 ];
 
 const onError = (err, req, resp, target) => {
@@ -25,11 +25,10 @@ module.exports = function (app) {
     onError: onError,
     secure: false,
     // Uncomment this line to add support for proxying websockets
-    //ws: true, 
     headers: {
       Connection: 'Keep-Alive'
     }
   });
-
+  
   app.use(appProxy);
 };

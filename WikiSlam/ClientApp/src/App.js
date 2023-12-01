@@ -2,6 +2,7 @@ import React, { Component, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import AppRoutes from './AppRoutes';
 import { Layout } from './components/Layout';
+import 'bootswatch/dist/slate/bootstrap.min.css'; 
 import './custom.css';
 
 export default function App (){
