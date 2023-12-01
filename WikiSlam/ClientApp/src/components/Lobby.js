@@ -11,6 +11,8 @@ import { Spinner } from 'reactstrap';
 import axios from 'axios'
 import Results from './Results';
 import {Game} from './Game'
+import { Stack } from 'react-bootstrap';
+import { motion } from 'framer-motion'
 
 const GameStates = {
   Lobby: 'Lobby',
@@ -119,16 +121,23 @@ export function Lobby() {
     case GameStates.Lobby:
       return (
         <Container fluid>
+          <div className='shape'/>
           <EditNameModal show={isEditingName} handleClose={()=>{setEditingName(false)}} handleCreate={changeName} modalTitle={"Change Name"} modalLabel={"Create a new name"}/>
-          <Row>
-            <Col>
-              <h3>Lobby</h3>
-              <h1>Code: {lobby.code ? lobby.code : "???"}</h1>
-              {user.isAdmin && <Button variant='primary' onClick={startGame}>Start Game</Button>}
-              <Button variant='secondary' onClick={leave}>Leave Lobby</Button>
+          <Row lg={2} md={1} sm={1}>
+            <Col className='col-md-6'>
+              <Stack gap={3}>
+                <h3 className='m-0 mt-4' style={{fontSize:"40pt", lineHeight: "75%"}}>LOBBY</h3>
+                <h1 className='text-light mb-5' style={{fontSize:"100pt", lineHeight: "75%"}}>CODE: {lobby.code ? lobby.code : "???"}</h1>
+                <div style={{height: "40vh"}}></div>
+                <motion.div className="mx-auto w-75" whileHover={{scale: 1.05}}><Button className="w-100 fs-2" variant='primary' disabled={!user.isAdmin} onClick={startGame}>Start Game</Button></motion.div>
+                <motion.div className="mx-auto w-50" whileHover={{scale: 1.05}}><Button className="w-100 fs-3" variant='secondary' onClick={leave}>Leave Lobby</Button></motion.div>
+              </Stack>
             </Col>
-            <Col>
-              {isLoading ? <Spinner/> : <LobbyList loggedInUser={user} users={users} isAdmin={user.isAdmin} onCloseCallback={removeUsers} onEditCallback={()=>{setEditingName(true)}} />}
+            <Col className='p-5'>
+              <Stack>
+                <h3 className='text-center mx-auto'>Players</h3>
+                {isLoading ? <Spinner/> : <LobbyList loggedInUser={user} users={users} isAdmin={user.isAdmin} onCloseCallback={removeUsers} onEditCallback={()=>{setEditingName(true)}} />}
+              </Stack>
             </Col>
           </Row>
         </Container>
