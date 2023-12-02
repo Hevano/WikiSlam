@@ -24,6 +24,7 @@ export default function Results({lobby, user, users, playAgainCallback}) {
   let count = 1
 
   return (
+    <motion.div animate={{x:[-2000, 0]}} transition={{ ease: "easeOut", duration: 0.5 }}>
     <Container fluid className='p-0'>
       <div className='result-shape'/>
         <Row className='p-5'>
@@ -34,7 +35,7 @@ export default function Results({lobby, user, users, playAgainCallback}) {
             <Col className='col-6'>
               {
                 (resultsLoading) ?
-                <Spinner/> :
+                <div className='d-flex'><Spinner className='m-auto'/></div> :
                 <Stack gap={3}>
                   <ArticleCard 
                     article={results.resultsList[0].article} 
@@ -81,5 +82,6 @@ export default function Results({lobby, user, users, playAgainCallback}) {
         </Row>
         
     </Container>
+    </motion.div>
   )
 }

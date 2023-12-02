@@ -120,6 +120,7 @@ export function Lobby() {
   switch(gameState){
     case GameStates.Lobby:
       return (
+        <motion.div animate={{x:[-2000, 0]}} transition={{ ease: "easeOut", duration: 0.5 }}>
         <Container fluid>
           <div className='shape'/>
           <EditNameModal show={isEditingName} handleClose={()=>{setEditingName(false)}} handleCreate={changeName} modalTitle={"Change Name"} modalLabel={"Create a new name"}/>
@@ -141,6 +142,7 @@ export function Lobby() {
             </Col>
           </Row>
         </Container>
+        </motion.div>
       )
     case GameStates.Game:
       return <Game 

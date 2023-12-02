@@ -222,6 +222,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
   }
 
   return (
+    <motion.div animate={{x:[-2000, 0]}} transition={{ ease: "easeOut", duration: 0.5 }}>
     <Container fluid className='p-0'>
       <Row>
       <Col className='bg-secondary col-2 min-vh-100'>
@@ -251,5 +252,6 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
       </Col>
     </Row>
   </Container>
+  </motion.div>
   );
 };
