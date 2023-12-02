@@ -28,8 +28,8 @@ export default function Results({lobby, user, users, playAgainCallback}) {
       <div className='result-shape'/>
         <Row className='p-5'>
             <Col>
-                <h3 className='m-0' style={{fontSize:"50pt"}}>LOBBY</h3>
-                <h1 className='text-light mb-5' style={{fontSize:"20pt", lineHeight: "75%"}}>CODE: {lobby.code ? lobby.code : "???"}</h1>
+                <h3 className='m-0 text-light' style={{fontSize:"50pt"}}>RESULTS</h3>
+                <h1 className='mb-5' style={{fontSize:"20pt", lineHeight: "75%"}}>CODE: {lobby.code ? lobby.code : "???"}</h1>
             </Col>
             <Col className='col-6'>
               {
