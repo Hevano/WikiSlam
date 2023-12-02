@@ -1,7 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Container, Row, Col, Stack, Card, Badge, Button, Placeholder, Spinner } from 'react-bootstrap';
-
+import { Container, Row, Col, Stack, Card, Button, Placeholder, Spinner, Alert, ListGroup, ListGroupItem } from 'react-bootstrap';
+import ArticleCard from './ArticleCard';
 import axios from 'axios';
+import LevelBadge from './LevelBadge';
+import { motion } from 'framer-motion'
 
 
 
@@ -14,38 +16,67 @@ export default function Results({lobby, user, users, playAgainCallback}) {
         axios.get(`api/lobby/${lobby.id}/results`).then(res => {
             setResults(res.data)
             setResultsLoading(false)
+
+            //TODO: Load image from wikipedia api
         })
       }, [])
 
+  let count = 1
+
   return (
-    <Container>
-        <Row>
+    <Container fluid className='p-0'>
+      <div className='result-shape'/>
+        <Row className='p-5'>
             <Col>
-                <h1>Results</h1>
-                <h2>{lobby.code}</h2>
+                <h3 className='m-0' style={{fontSize:"50pt"}}>LOBBY</h3>
+                <h1 className='text-light mb-5' style={{fontSize:"20pt", lineHeight: "75%"}}>CODE: {lobby.code ? lobby.code : "???"}</h1>
             </Col>
-            <Col>
+            <Col className='col-6'>
               {
                 (resultsLoading) ?
                 <Spinner/> :
                 <Stack gap={3}>
-                  {results.resultsList.map((r) => {
-                    return(<Card key={r.article.id}>
-                      <Card.Header>{r.user.name}</Card.Header>
-                      <Card.Body>
-                        {r.article.title} : 
-                        LVL {r.article.level} 
-                        STR {r.article.strength} 
-                        DEX {r.article.dexterity} 
-                        WIL {r.article.willpower}
-                      </Card.Body>
-                    </Card>)
+                  <ArticleCard 
+                    article={results.resultsList[0].article} 
+                    articleLoading={false} 
+                    showLevel={true} 
+                    children={<Alert className="text-center" style={{position: "absolute", top: "-1.5em", width: "80%", left: "10%"}}><h3>{results.resultsList[0].user.name} Wins!</h3></Alert>}
+                  />
+                  <ListGroup>
+                  {results.resultsList.slice(1).map((r) => {
+
+                    return(
+                      <motion.div whileHover={{x: -5}}>
+                      <ListGroupItem className="d-flex justify-content-between align-items-start p-3">
+                        <div className="ms-2 me-auto">
+                          <div className="fw-bold">#{++count}: "{r.article.title}" by {r.user.name}</div>
+                          STR {r.article.strength} DEX {r.article.dexterity} WIL {r.article.willpower}
+                        </div>
+                        <LevelBadge article={r.article} isLoading={false} size={1}/>
+                      </ListGroupItem>
+                      </motion.div>
+                    )
+
+                    // return(<Card key={r.article.id}>
+                    //   <Card.Header>#{++count}: {r.user.name}</Card.Header>
+                    //   <Card.Body>
+                    //     {r.article.title} : 
+                    //     LVL {r.article.level} 
+                    //     STR {r.article.strength} 
+                    //     DEX {r.article.dexterity} 
+                    //     WIL {r.article.willpower}
+                    //   </Card.Body>
+                    // </Card>)
                   })}
+                  </ListGroup>
                 </Stack>
               }
             </Col>
             <Col>
-            <Button onClick={playAgainCallback}>Play Again</Button>
+            <div className="d-flex align-items-end flex-column bd-highlight mb-3 h-100">
+              <motion.div whileHover={{scale: 1.5}} className="mt-auto p-2 bd-highlight"><Button className="fs-2 " onClick={playAgainCallback}>Play Again</Button></motion.div>
+            </div>
+            
             </Col>
         </Row>
         

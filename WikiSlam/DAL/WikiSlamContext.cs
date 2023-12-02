@@ -1,5 +1,4 @@
 ﻿using WikiSlam.Models;
-using System.Data.Entity.ModelConfiguration.Conventions;
 using Microsoft.EntityFrameworkCore;
 using System;
 

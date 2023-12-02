@@ -30,7 +30,7 @@ export function Lobby() {
   const [users, setUsers] = useState()
   const [isLoading, setLoading] = useState(true)
   const [isEditingName, setEditingName] = useState(false)
-  const [gameState, setGameState] = useState(GameStates.Lobby)
+  const [gameState, setGameState] = useState(GameStates.Results)
 
   //TODO: Use the proxy routing somehow
   const webSocket = useWebSocket('ws://localhost:3000/socket', {

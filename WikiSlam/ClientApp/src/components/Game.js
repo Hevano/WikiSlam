@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Container, Row, Col, ListGroup, Card, Stack, Badge, Button, ProgressBar, Placeholder, Spinner } from 'react-bootstrap';
-import QuestionBox from './QuestionBox';
 import {convert} from 'html-to-text'
 import axios from 'axios';
 import { motion, useAnimate } from "framer-motion"
 import LevelBadge from './LevelBadge';
+import ArticleCard from './ArticleCard';
+import QuestionBox from './QuestionBox';
 
 export function Game({lobby, user, users, webSocket, toResultsCallback, sortUsersCallback}) {
 
@@ -56,7 +57,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
       time += 0.005 * duration
       if(time > 100){
         clearInterval(interval)
-        //toResultsCallback()
+        toResultsCallback()
       } 
     }, 500)
     return () => clearInterval(interval);
@@ -90,7 +91,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
         willpower: 0,
         userId: user.id,
         // For front end use only
-        image: (res.data.originalimage) ? res.data.originalimage.source : null,
+        image: (res.data.originalimage) ? res.data.originalimage.source : "",
         desc: res.data.description
       }
 
@@ -236,20 +237,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
           <ProgressBar animated variant='warning' className="m-4" now={timerProgress} />
           <Stack direction="horizontal" gap={6}>
             <LevelBadge spacing="mx-auto" size={3} article={article} isLoading={articleLoading}/>
-            <Card className='p-5' style={{height:"50vh"}}>
-              <Card.Body>
-                {(articleLoading) ? <Placeholder as={Card.Title} animation="glow" className="m-1"><Placeholder xs={12} /></Placeholder> : <Card.Title className="text-center">{article.title}</Card.Title>}
-                <Card.Img className="mx-auto" style={{"objectFit": "contain", width: "16em", height: "16em"}} src={(!articleLoading && article.image) ? article.image : "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"} />
-                <Card.Text>
-                  <div className='mx-auto text-center'>{(articleLoading) ? "" : article.desc}</div>
-                  <Stack direction='horizontal'>
-                    <Badge ref={strRef}className='mx-auto mt-4'>STR: {(!articleLoading) ? article.strength : "???"}</Badge>
-                    <Badge ref={dexRef} className='mx-auto mt-4'>DEX: {(!articleLoading) ? article.dexterity : "???"}</Badge>
-                    <Badge ref={wilRef} className='mx-auto mt-4'>WIL: {(!articleLoading) ? article.willpower : "???"}</Badge>
-                  </Stack>
-                </Card.Text>
-              </Card.Body>
-            </Card>
+            <ArticleCard article={article} articleLoading={articleLoading} strRef={strRef} dexRef={dexRef} wilRef={wilRef}/>
             <div className='mx-auto'>
               <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
               <Button variant="warning" className='fs-1 mt-auto mx-auto p-2' disabled={articleLoading || questionsLoading} onClick={getArticle}>🎲</Button>

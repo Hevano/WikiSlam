@@ -7,6 +7,9 @@
 
         public string Title { get; set; }
 
+        //Url pointing to the article's image on wikipedia
+        public string Image { get; set; }
+
         public short Level { get; set; }
 
         //Generic RPG stats, to be changed later
