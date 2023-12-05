@@ -104,6 +104,11 @@ namespace WikiSlam.Controllers
                         broadcastMsg.Add("actionType", "join");
                         await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
                         break;
+                    case "rename":
+                        broadcastMsg.Add("user", jsonMsg.GetValue("user"));
+                        broadcastMsg.Add("actionType", "rename");
+                        await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
+                        break;
                     case "start":
                         broadcastMsg = new JObject();
                         broadcastMsg["actionType"] = "start";

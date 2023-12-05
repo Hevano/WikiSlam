@@ -1,8 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Form } from 'react-bootstrap'
-import { Button } from 'react-bootstrap'
-import {Stack} from 'react-bootstrap'
+import { Form, Button, Stack, Spinner } from 'react-bootstrap'
 import axios from 'axios'
 import JoinErrorToast from './JoinErrorToast';
 
@@ -19,8 +17,11 @@ export function JoinForm() {
   const [showErrorToast, setErrorToast] = useState(null)
 
   useEffect(()=>{
-    if(!lobbyCode) return
-    if(!userName) return
+    if(!lobbyCode || !userName){
+      console.log("incomplete")
+      setLoading(false)
+      return;
+    }
     setLoading(true)
     axios({url: `api/user`, method: "post", data: {name: userName, code: lobbyCode}}).then(result =>{
       const newUser = result.data
@@ -29,7 +30,7 @@ export function JoinForm() {
       })
       
     }).catch(result => {
-      console.log(result)
+      setLoading(false)
       if(result.response.status === 404){
         setErrorToast(
           {
@@ -62,7 +63,7 @@ export function JoinForm() {
 
   return (
     <Stack>
-      {showErrorToast && <JoinErrorToast errorTitle={showErrorToast.title} errorMsg={showErrorToast.errorMsg} dismissCallback={()=>{setErrorToast(null)}}/>}
+      {showErrorToast && <JoinErrorToast bg="warning" errorTitle={showErrorToast.title} errorMsg={showErrorToast.errorMsg} dismissCallback={()=>{setErrorToast(null)}}/>}
       <Form>
         <Form.Group className="mb-3" controlId="formLobbyCode">
           <Form.Label>Lobby Code</Form.Label>
@@ -72,8 +73,8 @@ export function JoinForm() {
           <Form.Label>Name</Form.Label>
           <Form.Control ref={userNameRef} placeholder="Enter your name" />
         </Form.Group>
-        <Button variant="primary" type="button" onClick={JoinFormCallback}>
-        Join
+        <Button disabled={isLoading} className='w-100' variant="primary" type="button" onClick={JoinFormCallback}>
+        {isLoading ? <Spinner/> : "Go"}
         </Button>
       </Form>
     </Stack>

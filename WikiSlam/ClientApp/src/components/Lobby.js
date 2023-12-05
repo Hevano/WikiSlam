@@ -30,7 +30,8 @@ export function Lobby() {
   const [users, setUsers] = useState()
   const [isLoading, setLoading] = useState(true)
   const [isEditingName, setEditingName] = useState(false)
-  const [gameState, setGameState] = useState(GameStates.Results)
+  const [isEditingNameLoading, setIsEditingNameLoading] = useState(false)
+  const [gameState, setGameState] = useState(GameStates.Lobby)
 
   //TODO: Use the proxy routing somehow
   const webSocket = useWebSocket('ws://localhost:3000/socket', {
@@ -60,6 +61,18 @@ export function Lobby() {
           if(user.id === msgJson.user.id) return
           let newUserArray = [...users, msgJson.user]
           setUsers(newUserArray)
+          break
+        case "rename":
+          if(user.id === msgJson.user.id) return
+          let renamedUserArray = users.map((u)=>{
+            if(u.id === msgJson.user.id){
+              console.log("Match found!")
+              return msgJson.user
+            } else {
+              return u
+            }
+          })
+          setUsers(renamedUserArray)
           break
         case "leave":
           let filteredUserArray = users.filter((u)=>{ return u.id !== msgJson.user.Id})
@@ -102,6 +115,7 @@ export function Lobby() {
   }
 
   function changeName(newName){
+    setIsEditingNameLoading(true)
     let newUser = structuredClone(user)
     newUser.name = newName
     axios({url: `api/user/${user.id}`, method: "put", data: newUser}).then(result =>{
@@ -109,6 +123,8 @@ export function Lobby() {
       const newUserArray = users.map((u)=>{ return u.id === newUser.id ? newUser : u})
       setUsers(newUserArray)
       setEditingName(false)
+      webSocket.sendMessage(JSON.stringify({userId: user.id, actionType:"rename", user: newUser}))
+      setIsEditingNameLoading(false)
     })
   }
 
@@ -123,7 +139,7 @@ export function Lobby() {
         <motion.div animate={{x:[-2000, 0]}} transition={{ ease: "easeOut", duration: 0.5 }}>
         <Container fluid>
           <div className='shape'/>
-          <EditNameModal show={isEditingName} handleClose={()=>{setEditingName(false)}} handleCreate={changeName} modalTitle={"Change Name"} modalLabel={"Create a new name"}/>
+          <EditNameModal show={isEditingName} handleClose={()=>{setEditingName(false)}} handleCreate={changeName} isLoading={isEditingNameLoading} modalTitle={"Change Name"} modalLabel={"Create a new name"} buttonLabel={"Update"}/>
           <Row lg={2} md={1} sm={1}>
             <Col className='col-md-6'>
               <Stack gap={3}>

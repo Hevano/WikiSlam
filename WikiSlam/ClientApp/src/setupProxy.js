@@ -25,6 +25,7 @@ module.exports = function (app) {
     onError: onError,
     secure: false,
     // Uncomment this line to add support for proxying websockets
+    ws: true,
     headers: {
       Connection: 'Keep-Alive'
     }

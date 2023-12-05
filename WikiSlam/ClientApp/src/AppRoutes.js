@@ -12,29 +12,9 @@ const AppRoutes = [
     element: <Home/>
   },
   {
-    path: '/join',
-    element: <JoinForm/>
-  },
-  {
     path: '/lobby',
     element: <Lobby/>
   },
-  {
-    path: '/game',
-    element: <Game/>
-  },
-  {
-    path: '/results',
-    element: <Results/>
-  },
-  {
-    path: '/counter',
-    element: <Counter />
-  },
-  {
-    path: '/fetch-data',
-    element: <FetchData />
-  }
 ];
 
 export default AppRoutes;

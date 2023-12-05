@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
-import { Modal, Button, Form } from 'react-bootstrap'
+import { Modal, Button, Form, Spinner } from 'react-bootstrap'
 
-export function EditNameModal({show, handleClose, handleCreate, modalTitle, modalLabel}) {
+export function EditNameModal({show, handleClose, handleCreate, isLoading, modalTitle, modalLabel, buttonLabel}) {
 
   const userNameRef = useRef()
 
@@ -30,7 +30,7 @@ export function EditNameModal({show, handleClose, handleCreate, modalTitle, moda
             </Modal.Body>
 
             <Modal.Footer>
-            <Button variant="primary" onClick={()=>{handleCreate(userNameRef.current.value)}}>Create</Button>
+            <Button disabled={isLoading} variant="primary" onClick={()=>{handleCreate(userNameRef.current.value)}}>{isLoading ? <Spinner/> : (buttonLabel ? buttonLabel : "Create")}</Button>
             </Modal.Footer>
         </Modal.Dialog>
       </Modal>
