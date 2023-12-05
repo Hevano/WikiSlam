@@ -31,18 +31,41 @@ export function Lobby() {
   const [isLoading, setLoading] = useState(true)
   const [isEditingName, setEditingName] = useState(false)
   const [isEditingNameLoading, setIsEditingNameLoading] = useState(false)
-  const [gameState, setGameState] = useState(GameStates.Lobby)
+  const [gameState, setGameState] = useState(localStorage.getItem('wikislam-gamestate') || GameStates.Lobby)
 
   //TODO: Use the proxy routing somehow
-  const webSocket = useWebSocket('ws://localhost:3000/socket', {
+  const webSocket = useWebSocket(`ws://localhost:3000/socket`, {
     onOpen: () => {console.log("opended!")},
-    onClose: () => { console.log("closed!"); webSocket.sendMessage(JSON.stringify({userId: user.id, actionType:"leave"}))}
+    onClose: () => { console.log("closed!"); webSocket.sendMessage(JSON.stringify({userId: user.id, actionType:"leave"}))},
+    //shouldReconnect: (closeEvent) => { return true },
+    retryOnError: false,
+    reconnectAttempts: 3,
+    reconnectInterval: 1000,
+    onReconnectStop: (numAttempted) => { console.log("Could not reconnect after", numAttempted, "attempts") },
+    heartbeat: { message: JSON.stringify({actionType: "ping", userId: user.id, intercal: 60000})}
   });
 
 
+  
   useEffect(() => {
+    //notify other clients a new player has joined
     webSocket.sendMessage(JSON.stringify({userId: user.id, actionType:"join"}))
+
+    //Grab list of users from server
+    axios.get(`api/lobby/${lobby.id}/users`).then(res => {
+      setLoading(false)
+      setUsers(res.data)
+    })
+
+    //Save lobby and user data to local storage, in case we need to reconnect from the homepage
+    localStorage.setItem('wikislam-lobby', JSON.stringify(lobby))
+    localStorage.setItem('wikislam-user', JSON.stringify(user))
   }, []);
+
+  //Save game state in local storage to persist between reloads
+  useEffect(()=>{
+    localStorage.setItem('wikislam-gamestate', (gameState == GameStates.Game) ? gameState : GameStates.Lobby)
+  }, [gameState])
 
   useEffect(() => {
     if (webSocket.lastMessage !== null && users != null) {
@@ -59,6 +82,7 @@ export function Lobby() {
           }
 
           if(user.id === msgJson.user.id) return
+          if(users.some((u) => {return u.id === msgJson.user.id})) return
           let newUserArray = [...users, msgJson.user]
           setUsers(newUserArray)
           break
@@ -86,14 +110,6 @@ export function Lobby() {
       }
     }
   }, [webSocket.lastMessage]);
-
-  useEffect(()=>{
-    axios.get(`api/lobby/${lobby.id}/users`).then(res => {
-      setLoading(false)
-      console.log(res.data)
-      setUsers(res.data)
-    })
-  },[])
 
   function removeUsers(u){
     let index = users.indexOf(u);

@@ -20,6 +20,7 @@ export function Home() {
   function createLobby(userName){
     setCreateLobbyLoading(true)
     axios({url: `api/lobby`, method: "post", data: {admin: null, name: userName}}).then(result =>{
+      localStorage.removeItem('wikislam-gamestate')
       navigate("/lobby", {state:{lobby: result.data.lobby, user: result.data.admin}})
       setCreateLobbyLoading(false)
     }).catch(err => {

@@ -10,7 +10,6 @@ const context = [
     "/weatherforecast",
     "/swagger",
     "/api",
-    "/socket"
 ];
 
 const onError = (err, req, resp, target) => {
@@ -24,8 +23,7 @@ module.exports = function (app) {
     // the ASP NET Core webserver is unavailable
     onError: onError,
     secure: false,
-    // Uncomment this line to add support for proxying websockets
-    ws: true,
+    changeOrigin: true,
     headers: {
       Connection: 'Keep-Alive'
     }

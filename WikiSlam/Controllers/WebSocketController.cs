@@ -49,7 +49,11 @@ namespace WikiSlam.Controllers
                 string msg = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
 
                 //If we cannot handle the message, close the connection
-                if (!await HandleMessage(msg, webSocket, user)) break;
+                if (!await HandleMessage(msg, webSocket, user))
+                {
+                    System.Console.WriteLine($"Could not handle message from user: {user?.Name}");
+                    break;
+                }
 
                 receiveResult = await webSocket.ReceiveAsync(
                     new ArraySegment<byte>(buffer), CancellationToken.None);
@@ -65,68 +69,80 @@ namespace WikiSlam.Controllers
                 broadcastMsg.Add("user", JToken.FromObject(user, new JsonSerializer()));
                 broadcastMsg.Add("actionType", "leave");
                 await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
-                _userWebSockets.TryRemove(user.Id, out var ws);
+                if(!_userWebSockets.TryRemove(user.Id, out var ws))
+                {
+                    Console.WriteLine("Could not remove websocket from dict");
+                }
             }
         }
 
-        //TODO: Time out connections after round duration passes with no input
         private async Task<bool> HandleMessage(string msg, WebSocket webSocket, User? user)
         {
             //parse msg as json
             JObject jsonMsg = JObject.Parse(msg);
 
-            //If the user id we receive is not the same as the user we have, there is something wrong
-            if (user != null && jsonMsg["userId"].ToObject<int>() != user.Id) return false;
+            //Validate json
+            if (jsonMsg == null) return false;
+            if (!jsonMsg.TryGetValue("actionType", out var actionType)) return false;
+            if (!jsonMsg.TryGetValue("userId", out var userId)) return false;
 
-            //verify user id is valid
-            var foundUser = await _dbContext.Users.FindAsync(jsonMsg["userId"].ToObject<int>());
+            //If the user id we receive is not the same as the user we have, there is something wrong
+            if (user != null && userId.ToObject<int>() != user.Id) return false;
+
+            //verify user still exists
+            var foundUser = await _dbContext.Users.FindAsync(userId.ToObject<int>());
             if (foundUser == null) return false;
 
-            //Set up this socket's user if that has not been done
-            if (user == null)
+            //If user has another websocket open somewhere, we need to close that
+            if (_userWebSockets.ContainsKey(foundUser.Id) && _userWebSockets[foundUser.Id] != webSocket)
             {
+                if (_userWebSockets[foundUser.Id].State != WebSocketState.Closed)
+                {
+                    await _userWebSockets[foundUser.Id].CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                }
+                _userWebSockets[foundUser.Id] = webSocket;
                 user = foundUser;
-                _userWebSockets.TryAdd(user.Id, webSocket);
-            } else if (_userWebSockets[user.Id] != webSocket) //Replace websocket if we need to
+            } else if (user == null) 
             {
-                await _userWebSockets[user.Id].CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
-                _userWebSockets[user.Id] = webSocket;
+                //Set up this socket's user if that has not been done
+                user = foundUser;
+                if(!_userWebSockets.TryAdd(user.Id, webSocket))
+                {
+                    Console.WriteLine($"Failed to add socket to dict for user: {user.Name}");
+                }
             }
 
             //perform logic based on the action type
             JObject broadcastMsg = new JObject();
-            if (jsonMsg.TryGetValue("actionType", out var actionType))
+            switch (actionType.ToString())
             {
-                switch ((string)actionType)
-                {
-                    case "join":
-                        broadcastMsg.Add("user", JToken.FromObject(user, new JsonSerializer()));
-                        broadcastMsg.Add("actionType", "join");
-                        await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
-                        break;
-                    case "rename":
-                        broadcastMsg.Add("user", jsonMsg.GetValue("user"));
-                        broadcastMsg.Add("actionType", "rename");
-                        await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
-                        break;
-                    case "start":
-                        broadcastMsg = new JObject();
-                        broadcastMsg["actionType"] = "start";
-                        await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
-                        break;
-                    case "leave":
-                        return false;
-                    case "article":
-                        broadcastMsg.Add("article", jsonMsg.GetValue("article"));
-                        broadcastMsg.Add("actionType", "article");
-                        await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
-                        break;
-                    default:
-                        return false;
-                }
-                return true;
+                case "join":
+                    broadcastMsg.Add("user", JToken.FromObject(user, new JsonSerializer()));
+                    broadcastMsg.Add("actionType", "join");
+                    await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
+                    return true;
+                case "rename":
+                    broadcastMsg.Add("user", jsonMsg.GetValue("user"));
+                    broadcastMsg.Add("actionType", "rename");
+                    await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
+                    return true;
+                case "start":
+                    broadcastMsg = new JObject();
+                    broadcastMsg["actionType"] = "start";
+                    await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
+                    return true;
+                case "leave":
+                    return false;
+                case "article":
+                    broadcastMsg.Add("article", jsonMsg.GetValue("article"));
+                    broadcastMsg.Add("actionType", "article");
+                    await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
+                    return true;
+                case "ping":
+                    return true;
+                default:
+                    return false;
             }
-            return false;
         }
 
         private async Task BroadcastToLobbyAsync(int lobbyId, string message)
