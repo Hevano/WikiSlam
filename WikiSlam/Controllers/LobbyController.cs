@@ -19,6 +19,13 @@ namespace WikiSlam.Controllers
             _dbContext = wikiSlamContext;
         }
 
+        private int IncrementLobbyIndex()
+        {
+            LobbyCodeIndex += System.Random.Shared.Next(1, 5);
+            if (LobbyCodeIndex > 17576) LobbyCodeIndex = 0;
+            return LobbyCodeIndex;
+        }
+
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Lobby>>> GetLobbies()
@@ -76,10 +83,13 @@ namespace WikiSlam.Controllers
                 return NotFound();
             }
 
-            /*if(lobby.RoundStartTimestamp + lobby.RoundDuration < DateTime.Now)
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            //Ensure that the round time has elapsed already
+            if (lobby.RoundStartTimestamp + lobby.RoundDuration.TotalSeconds > now)
             {
-                return BadRequest();
-            }*/
+                return Conflict();
+            }
 
             var articles = await _dbContext.Users
                 .Where(user => user.LobbyId == id)
@@ -175,10 +185,10 @@ namespace WikiSlam.Controllers
 
             //Create Lobby
             var lobby = new Lobby();
-            LobbyCodeIndex += System.Random.Shared.Next(1, 5);
-            lobby.Code = Lobby.IdToCode(LobbyCodeIndex);
-            lobby.CreationTimestamp = DateTime.Now;
-            lobby.RoundDuration = new TimeSpan(0,2,0);
+            lobby.Code = Lobby.IdToCode(IncrementLobbyIndex());
+            lobby.CreationTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            lobby.RoundStartTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            lobby.RoundDuration = TimeSpan.FromMinutes(2);
             var createdLobby = _dbContext.Lobbies.Add(lobby);
             await _dbContext.SaveChangesAsync();
 

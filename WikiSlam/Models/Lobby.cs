@@ -6,8 +6,8 @@ namespace WikiSlam.Models
     {
         public int Id { get; set; }
         public string Code { get; set; }
-        public DateTime CreationTimestamp { get; set; }
-        public DateTime RoundStartTimestamp { get; set; }
+        public long CreationTimestamp { get; set; }
+        public long RoundStartTimestamp { get; set; }
 
         public TimeSpan RoundDuration { get; set; }
 

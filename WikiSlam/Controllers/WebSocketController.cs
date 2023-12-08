@@ -129,7 +129,15 @@ namespace WikiSlam.Controllers
                 case "start":
                     broadcastMsg = new JObject();
                     broadcastMsg["actionType"] = "start";
+
+                    //update lobby round start timestamp
+                    //TODO: Remove all previously saved articles
+                    var lobby = await _dbContext.Lobbies.FindAsync(user.LobbyId);
+                    if (lobby == null) return false;
+                    lobby.RoundStartTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                     await BroadcastToLobbyAsync(user.LobbyId, broadcastMsg.ToString());
+                    _dbContext.Entry(lobby).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    await _dbContext.SaveChangesAsync();
                     return true;
                 case "leave":
                     return false;

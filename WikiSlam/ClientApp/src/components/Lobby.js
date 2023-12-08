@@ -36,13 +36,13 @@ export function Lobby() {
   //TODO: Use the proxy routing somehow
   const webSocket = useWebSocket(`ws://localhost:3000/socket`, {
     onOpen: () => {console.log("opended!")},
-    onClose: () => { console.log("closed!"); webSocket.sendMessage(JSON.stringify({userId: user.id, actionType:"leave"}))},
-    //shouldReconnect: (closeEvent) => { return true },
-    retryOnError: false,
+    onClose: () => { console.log("closed!");},
+    shouldReconnect: (closeEvent) => { return true },
+    retryOnError: true,
     reconnectAttempts: 3,
     reconnectInterval: 1000,
     onReconnectStop: (numAttempted) => { console.log("Could not reconnect after", numAttempted, "attempts") },
-    heartbeat: { message: JSON.stringify({actionType: "ping", userId: user.id, intercal: 60000})}
+    heartbeat: { message: JSON.stringify({actionType: "ping", userId: user.id, interval: 60000})}
   });
 
 

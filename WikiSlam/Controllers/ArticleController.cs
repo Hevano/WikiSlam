@@ -50,9 +50,17 @@ namespace WikiSlam.Controllers
             {
                 return NotFound();
             }
-            if((await _dbContext.Users.FindAsync(article.UserId) == null))
+            var user = await _dbContext.Users.FindAsync(article.UserId);
+            if (user == null)
             {
                 return NotFound();
+            }
+
+            //Block new articles once the round has ended
+            var lobby = await _dbContext.Lobbies.FindAsync(user.LobbyId);
+            if (lobby.RoundStartTimestamp + lobby.RoundDuration.TotalSeconds < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            {
+                return Conflict();
             }
 
             //Remove any other articles this user owns
@@ -74,6 +82,14 @@ namespace WikiSlam.Controllers
             if (id != article.Id)
             {
                 return BadRequest();
+            }
+
+            //Block article updates once round has ended
+            var user = await _dbContext.Users.FindAsync(article.UserId);
+            var lobby = await _dbContext.Lobbies.FindAsync(user.LobbyId);
+            if(lobby.RoundStartTimestamp + lobby.RoundDuration.TotalSeconds < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            {
+                return Conflict();
             }
 
             _dbContext.Entry(article).State = Microsoft.EntityFrameworkCore.EntityState.Modified;

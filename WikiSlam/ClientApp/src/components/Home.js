@@ -24,13 +24,15 @@ export function Home() {
     let oldUser = JSON.parse(localStorage.getItem('wikislam-user'))
 
     let clearStateOnError = err => {
-      localStorage.clearItem('wikislam-lobby')
-      localStorage.clearItem('wikislam-user')
+      localStorage.removeItem('wikislam-lobby')
+      localStorage.removeItem('wikislam-user')
     };
 
     if(oldLobby && oldUser){
       axios.get(`api/lobby/${oldLobby.id}`).then((res)=>{
         axios.get(`api/lobby/${oldLobby.id}`).then((res)=>{
+          localStorage.setItem('wikislam-lobby', JSON.stringify(res.data))
+          console.log("Setting old lobby from request", res)
           setCanRejoin(true);
         }).catch(clearStateOnError)
       }).catch(clearStateOnError)
@@ -54,10 +56,7 @@ export function Home() {
     let oldUser = JSON.parse(localStorage.getItem('wikislam-user'))
     let duration = oldLobby.roundDuration.split(":")
     duration = (parseInt(duration[0]) * 3600) + (parseInt(duration[1]) * 60) + (parseInt(duration[2]))
-    let startTime = oldLobby.roundStartTimestamp.split(":")
-    startTime = (parseInt(startTime[0]) * 3600) + (parseInt(startTime[1]) * 60) + (parseInt(startTime[2]))
-    
-    localStorage.setItem('wikislam-gamestate', (Date.now() + duration > startTime) ? "Lobby" : "Game")
+    localStorage.setItem('wikislam-gamestate', ((Date.now() / 1000) + duration > oldLobby.roundStartTimestamp) ? "Lobby" : "Game")
     navigate("/lobby", {state:{lobby: oldLobby, user: oldUser}});
   }
 
@@ -70,7 +69,7 @@ export function Home() {
       <motion.div className='d-inline-block' animate={{x:[-1000, 0]}} transition={{ ease: "easeOut", duration: 0.2 }}>WIKI</motion.div>
       <motion.div className='d-inline-block' animate={{x:[1000, 0]}}transition={{ ease: "easeOut", duration: 0.2 }}>SLAM!</motion.div>
     </h1>
-    {canRejoin && <motion.div className="mt-auto w-50" whileHover={{scale: 1.2}}><Button className='fs-2 w-100' onClick={rejoin}>Rejoin</Button></motion.div>}
+    {canRejoin && (<motion.div className="mt-auto w-50" whileHover={{scale: 1.2}}><Button className='fs-2 w-100' onClick={rejoin}>Rejoin</Button></motion.div>)}
     <motion.div className="mt-auto w-50" whileHover={{scale: 1.2}}><Button className='fs-2 w-100' onClick={()=>{setShowJoin(true)}}>Play</Button></motion.div>
     <motion.div className="mx-auto m-5 w-25" whileHover={{scale: 1.1}}><Button className='fs-5 w-100' onClick={()=>{setShowCreateLobby(true)}}>Create Lobby</Button></motion.div>
     </div>

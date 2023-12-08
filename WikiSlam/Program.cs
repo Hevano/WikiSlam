@@ -13,6 +13,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//Add cleanup service
+builder.Services.AddHostedService<LobbyCleanupService>();
+
 builder.Services.AddCors();
 
 
@@ -31,7 +34,7 @@ if (!app.Environment.IsDevelopment())
 
 var webSocketOptions = new WebSocketOptions
 {
-    KeepAliveInterval = TimeSpan.FromMinutes(2)
+    KeepAliveInterval = TimeSpan.FromMinutes(3)
 };
 
 app.UseWebSockets(webSocketOptions);

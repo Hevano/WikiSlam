@@ -15,7 +15,7 @@ using System.Data.Entity;
         {
             var Lobbies = new List<Lobby>
             {
-            new Lobby{Id=1, Code="AAAA", CreationTimestamp = DateTime.Now, RoundDuration = new TimeSpan(0,3,0)},
+            new Lobby{Id=1, Code="AAAA", CreationTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(), RoundDuration = new TimeSpan(0,3,0)},
             };
             Lobbies.ForEach(s => context.Lobbies.Add(s));
             context.SaveChanges();

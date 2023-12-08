@@ -50,12 +50,12 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
   //Sets up the timer
   useEffect(()=>{
     let duration = lobby.roundDuration.split(":")
-    duration = (parseInt(duration[0]) * 3600) + (parseInt(duration[1]) * 60) + (parseInt(duration[2]))
-    let time = 0;
+    duration = (parseInt(duration[0]) * 3600) + (parseInt(duration[1]) * 60) + (parseInt(duration[2]));
+    let progress = 0;
     const interval = setInterval(() => {
-      setTimerProgress(t => t + (0.005 * duration))
-      time += 0.005 * duration
-      if(time > 100){
+      progress += 0.5;
+      setTimerProgress((progress / duration) * 100)
+      if(progress / duration > 1){
         clearInterval(interval)
         toResultsCallback()
       } 
@@ -111,7 +111,6 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
         newArticle.strength = Math.ceil(10 * text.length / 5264)
         newArticle.dexterity = res.data.parse.categories.length
         newArticle.willpower = citations ? citations.length : 1
-        console.log("new Article", newArticle)
         setArticle(newArticle)
         let quoteList = htmlToQuoteList(html)
         setArticleQuestions(quoteList)
@@ -119,6 +118,11 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
         webSocket.sendMessage(JSON.stringify({userId: user.id, article: newArticle, actionType:"article"}))
         axios({url: `api/article`, method: "post", data: newArticle}).then(res => {
           setArticleId(res.data.id)
+        }).catch(err => {
+          if(err.response.status === 409){
+            console.log("round ended earlier than expected!");
+            toResultsCallback()
+          }
         })
       })
     })
@@ -218,6 +222,12 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
     webSocket.sendMessage(JSON.stringify({userId: user.id, article: updatedArticle, actionType:"article"}))
     axios({method:"put", url:`api/article/${articleId}`, data:updatedArticle}).then(res =>{
       //console.log(res)
+    }).catch(err => {
+      console.log(err);
+      if(err.response.status === 409){
+        console.log("round ended earlier than expected!");
+        toResultsCallback()
+      }
     })
   }
 
