@@ -7,6 +7,15 @@ import LevelBadge from './LevelBadge';
 import ArticleCard from './ArticleCard';
 import QuestionBox from './QuestionBox';
 
+//Audio
+import RerollSound from '../assets/Reroll.mp3';
+import LevelUpSound from '../assets/LevelUp.mp3';
+import LevelDownSound from '../assets/LevelDown.mp3';
+import LoadedSound from '../assets/Loaded.mp3';
+import ArticleLoadedSound from '../assets/ArticleLoaded.mp3'
+import SelectedSound from '../assets/Selected.mp3';
+import ReactAudioPlayer from 'react-audio-player';
+
 export function Game({lobby, user, users, webSocket, toResultsCallback, sortUsersCallback}) {
 
   //Animation hooks
@@ -23,6 +32,14 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
   const [questionsLoading, setQuestionLoading] = useState(true)
   const [timerProgress, setTimerProgress] = useState(0)
   const [lobbyArticles, setLobbyArticles] = useState({})
+
+  //Audio state
+  const [rerollAudio, setRerollAudio] = useState()
+  const [levelUpAudio, setLevelUpAudio] = useState()
+  const [levelDownAudio, setLevelDownAudio] = useState()
+  const [selectedAudio, setSelectedAudio] = useState()
+  const [loadedAudio, setLoadedAudio] = useState()
+  const [articleLoadedAudio, setArticleLoadedAudio] = useState()
 
   //Handles websocket logic when new message comes in
   useEffect(() => {
@@ -79,6 +96,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
 
   //Creates new article and a set of 4 questions
   function getArticle(){
+    if(rerollAudio) rerollAudio.audioEl.current.play()
     setArticleLoading(true)
     setQuestionLoading(true)
     axios.get(`https://en.wikipedia.org/api/rest_v1/page/random/summary`).then(res => {
@@ -115,6 +133,9 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
         let quoteList = htmlToQuoteList(html)
         setArticleQuestions(quoteList)
         setArticleLoading(false)
+
+        if(articleLoadedAudio) articleLoadedAudio.audioEl.current.play()
+
         webSocket.sendMessage(JSON.stringify({userId: user.id, article: newArticle, actionType:"article"}))
         axios({url: `api/article`, method: "post", data: newArticle}).then(res => {
           setArticleId(res.data.id)
@@ -162,6 +183,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
 
     setRandomQuestions(newQuestions)
     setQuestionLoading(false)
+    if(loadedAudio) loadedAudio.audioEl.current.play()
   }
   
 
@@ -190,6 +212,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
 
   //Callback for when user selects an answer to a question
   function answerQuestion(wasCorrect){
+    if(selectedAudio) selectedAudio.audioEl.current.play()
     const updatedArticle = article
     updatedArticle.level += (wasCorrect) ? 1 : -1
     const modifier = (wasCorrect) ? 1.5 : 0.6
@@ -209,6 +232,13 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
         break
       default:
         break
+    }
+
+    if(wasCorrect){
+      console.log(levelUpAudio)
+      if(levelUpAudio) levelUpAudio.audioEl.current.play()
+    } else {
+      if(levelDownAudio) levelDownAudio.audioEl.current.play()
     }
 
     setArticle(updatedArticle)
@@ -233,6 +263,37 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
 
   return (
     <motion.div animate={{x:[-2000, 0]}} transition={{ ease: "easeOut", duration: 0.5 }}>
+    <ReactAudioPlayer
+        src={RerollSound}
+        preload="auto"
+        ref={(element) => {setRerollAudio(element)}}
+      />
+      <ReactAudioPlayer
+        src={LevelDownSound}
+        preload="auto"
+        ref={(element) => {setLevelDownAudio(element)}}
+      />
+      <ReactAudioPlayer
+        src={LevelUpSound}
+        preload="auto"
+        ref={(element) => {setLevelUpAudio(element)}}
+      />
+      <ReactAudioPlayer
+        src={LoadedSound}
+        preload="auto"
+        ref={(element) => {setLoadedAudio(element)}}
+      />
+      <ReactAudioPlayer
+        src={ArticleLoadedSound}
+        preload="auto"
+        ref={(element) => {setArticleLoadedAudio(element)}}
+      />
+      <ReactAudioPlayer
+        src={SelectedSound}
+        preload="auto"
+        ref={(element) => {setSelectedAudio(element)}}
+        volume={0.5}
+      />
     <Container fluid className='p-0'>
       <Row>
       <Col className='bg-secondary col-2 min-vh-100'>

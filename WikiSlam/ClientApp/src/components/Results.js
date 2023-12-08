@@ -4,6 +4,12 @@ import ArticleCard from './ArticleCard';
 import axios from 'axios';
 import LevelBadge from './LevelBadge';
 import { motion } from 'framer-motion'
+import ReactAudioPlayer from 'react-audio-player';
+
+//Audio
+import GameOverSound from '../assets/GameOver.mp3';
+
+
 
 
 
@@ -16,8 +22,6 @@ export default function Results({lobby, user, users, playAgainCallback}) {
         axios.get(`api/lobby/${lobby.id}/results`).then(res => {
             setResults(res.data)
             setResultsLoading(false)
-
-            //TODO: Load image from wikipedia api
         })
       }, [])
 
@@ -25,6 +29,11 @@ export default function Results({lobby, user, users, playAgainCallback}) {
 
   return (
     <motion.div animate={{x:[-2000, 0]}} transition={{ ease: "easeOut", duration: 0.5 }}>
+    <ReactAudioPlayer
+        src={GameOverSound}
+        preload="auto"
+        autoPlay={true}
+      />
     <Container fluid className='p-0'>
       <div className='result-shape'/>
         <Row className='p-5'>
@@ -57,17 +66,6 @@ export default function Results({lobby, user, users, playAgainCallback}) {
                       </ListGroupItem>
                       </motion.div>
                     )
-
-                    // return(<Card key={r.article.id}>
-                    //   <Card.Header>#{++count}: {r.user.name}</Card.Header>
-                    //   <Card.Body>
-                    //     {r.article.title} : 
-                    //     LVL {r.article.level} 
-                    //     STR {r.article.strength} 
-                    //     DEX {r.article.dexterity} 
-                    //     WIL {r.article.willpower}
-                    //   </Card.Body>
-                    // </Card>)
                   })}
                   </ListGroup>
                 </Stack>
