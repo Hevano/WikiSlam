@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Data.Entity;
 using WikiSlam.DAL;
 using WikiSlam.Models;
 
@@ -58,6 +57,10 @@ namespace WikiSlam.Controllers
 
             //Block new articles once the round has ended
             var lobby = await _dbContext.Lobbies.FindAsync(user.LobbyId);
+            if(lobby == null)
+            {
+                return NotFound();
+            }
             if (lobby.RoundStartTimestamp + lobby.RoundDuration.TotalSeconds < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
             {
                 return Conflict();
@@ -84,8 +87,20 @@ namespace WikiSlam.Controllers
                 return BadRequest();
             }
 
-            //Block article updates once round has ended
+            if(_dbContext.Articles.Find(article.Id) == null)
+            {
+                return NotFound();
+            }
+
+            
             var user = await _dbContext.Users.FindAsync(article.UserId);
+
+            if(user == null)
+            {
+                return NotFound();
+            }
+
+            //Block article updates once round has ended
             var lobby = await _dbContext.Lobbies.FindAsync(user.LobbyId);
             if(lobby.RoundStartTimestamp + lobby.RoundDuration.TotalSeconds < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
             {

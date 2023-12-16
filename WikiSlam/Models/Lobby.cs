@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 
 namespace WikiSlam.Models
 {
@@ -16,6 +17,7 @@ namespace WikiSlam.Models
 
         public static string IdToCode(int Id)
         {
+            Id = Math.Abs(Id) % 17576;
             int[] order = { 3, 2, 1 };
             string output = "";
             foreach (var index in order)
@@ -31,6 +33,8 @@ namespace WikiSlam.Models
 
         public static int CodeToId(string Code)
         {
+            Code = Code.ToLower();
+            if (Code.Length != 3 || !Regex.IsMatch(Code, @"^[a-zA-Z]+$")) return -1;
             int[] order = { 1, 2, 3 };
             int output = 0;
             foreach(var index in order)

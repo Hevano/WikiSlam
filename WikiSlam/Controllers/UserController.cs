@@ -62,6 +62,11 @@ namespace WikiSlam.Controllers
                 return NotFound();
             }
             user.LobbyId = userLobby.Id;
+
+            //If there is no admin in this lobby, this user will become the admin
+            bool adminFound = _dbContext.Users.Where(u => u.LobbyId == userLobby.Id && u.IsAdmin).Any();
+            user.IsAdmin = !adminFound;
+
             var newUser = _dbContext.Users.Add(user);
             await _dbContext.SaveChangesAsync();
             return CreatedAtAction(nameof(GetUser), new { id = newUser.Entity.Id }, newUser.Entity);
@@ -74,6 +79,12 @@ namespace WikiSlam.Controllers
             {
                 return BadRequest();
             }
+
+            if (_dbContext.Users.Find(id) == null)
+            {
+                return NotFound();
+            }
+
             _dbContext.Entry(user).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
             try
@@ -102,6 +113,14 @@ namespace WikiSlam.Controllers
             if (user == null)
             {
                 return NotFound();
+            }
+
+            //Check if the lobby is empty
+            var usersInLobby = _dbContext.Users.Where(u => u.LobbyId == user.LobbyId).Count();
+            if(usersInLobby < 2)
+            {
+                var lobby = await _dbContext.Lobbies.FindAsync(user.LobbyId);
+                _dbContext.Lobbies.Remove(lobby);
             }
 
             _dbContext.Users.Remove(user);

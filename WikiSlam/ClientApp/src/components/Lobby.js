@@ -126,6 +126,9 @@ export function Lobby() {
 
   function leave(){
     axios({url: `api/user/${user.id}`, method: "delete"}).then(result =>{
+      localStorage.removeItem('wikislam-lobby')
+      localStorage.removeItem('wikislam-user')
+      webSocket.sendMessage(JSON.stringify({userId: user.id, actionType:"leave"}))
       navigate("/")
     })
   }

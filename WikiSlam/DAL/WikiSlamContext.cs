@@ -10,9 +10,9 @@ namespace WikiSlam.DAL
         {
         }
 
-        public DbSet<Article> Articles { get; set; }
-        public DbSet<User> Users { get; set; }
-        public DbSet<Lobby> Lobbies { get; set; }
+        public virtual DbSet<Article> Articles { get; set; }
+        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Lobby> Lobbies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
