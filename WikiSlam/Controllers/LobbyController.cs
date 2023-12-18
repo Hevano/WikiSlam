@@ -100,6 +100,11 @@ namespace WikiSlam.Controllers
                     (user, article) => article
                  ).ToListAsync();
 
+            if (articles.IsNullOrEmpty())
+            {
+                return NotFound();
+            }
+
             var roundResults = new RoundResults(id);
 
             foreach(var article in articles)
@@ -117,11 +122,6 @@ namespace WikiSlam.Controllers
 
             roundResults.resultsList.Sort((lhs, rhs) => rhs.Score.CompareTo(lhs.Score));
             roundResults.Winner = roundResults.resultsList.First().Article.Id;
-
-            foreach(var r in roundResults.resultsList)
-            {
-                System.Console.WriteLine(r.Score);
-            }
 
             return roundResults;
         }
@@ -212,6 +212,12 @@ namespace WikiSlam.Controllers
             {
                 return BadRequest();
             }
+
+            if((await _dbContext.Lobbies.FindAsync(id)) == null)
+            {
+                return NotFound();
+            }
+
             _dbContext.Entry(lobby).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
             try
