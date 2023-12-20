@@ -11,7 +11,7 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectio
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+//builder.Services.AddSwaggerGen();
 
 //Add cleanup service
 builder.Services.AddHostedService<LobbyCleanupService>();
@@ -28,8 +28,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 } else
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    /*app.UseSwagger();
+    app.UseSwaggerUI();*/
 }
 
 var webSocketOptions = new WebSocketOptions

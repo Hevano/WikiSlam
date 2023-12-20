@@ -9,11 +9,11 @@ export default function HowToPlay() {
       <Card.Body>
         <Card.Title className="fs-2">Roll For A Wikipedia article</Card.Title>
         <Card.Text>
-          Each wikipedia article is ranked by four factors: Strength, Dexterity, and Willpower. 
+          Each wikipedia article is ranked by three factors: Strength, Dexterity, and Willpower. 
           Strength is based on the length of the article. 
           Dexterity is based on the number of categories the article falls under.
           Willpower is based on the number of citations the article uses.
-          <span className='text-body-secondary'> Pro tip: spending some time to roll for a article with high base stats will improve your chances of winning.</span>
+          <span className='text-body-secondary'> Pro tip: spending some time to roll for an article with high base stats will improve your chances of winning.</span>
         </Card.Text>
       </Card.Body>
       <Card.Img className='m-3' style={{height: "16rem", width: "auto"}} variant="top" src="https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png" />

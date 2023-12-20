@@ -34,7 +34,7 @@ export function Lobby() {
   const [gameState, setGameState] = useState(localStorage.getItem('wikislam-gamestate') || GameStates.Lobby)
 
   //TODO: Use the proxy routing somehow
-  const webSocket = useWebSocket(`ws://localhost:3000/socket`, {
+  const webSocket = useWebSocket(`wss://wikislam.azurewebsites.net/socket`, {
     onOpen: () => {console.log("opended!")},
     onClose: () => { console.log("closed!");},
     shouldReconnect: (closeEvent) => { return true },
