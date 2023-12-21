@@ -9,7 +9,7 @@ export default function ArticleCard({article, articleLoading, strRef, dexRef, wi
       {showLevel && <div style={{position: "absolute", top: "40%", left: "-3em"}}><LevelBadge size={3} isLoading={articleLoading} article={article}/></div>}
       <Card.Body>
         {(articleLoading) ? <Placeholder as={Card.Title} animation="glow" className="m-1"><Placeholder xs={12} /></Placeholder> : <Card.Title className="text-center">{article.title}</Card.Title>}
-        <div className='d-flex'><Card.Img className="mx-auto" style={{"objectFit": "contain", width: "16em", height: "16em"}} src={(!articleLoading && article.image) ? article.image : "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"} /></div>
+        <div className='d-flex'><Card.Img className="mx-auto" style={{"objectFit": "contain", width: "16em", height: "16em"}} src={(!articleLoading && article.image) ? article.image : "https://placehold.co/600x400?text=Loading"} /></div>
         <Card.Text>
           <div className='mx-auto text-center'>{(articleLoading) ? "" : article.desc}</div>
           <Stack direction='horizontal'>

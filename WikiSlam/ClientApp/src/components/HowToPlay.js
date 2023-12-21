@@ -1,5 +1,8 @@
 import React from 'react'
 import { Card, Stack } from 'react-bootstrap'
+import InspectImage from "../assets/Wikislam-inspect.webp";
+import RankImage from "../assets/Wikislam-rank.webp";
+import RollImage from "../assets/Wikislam-roll.webp";
 
 export default function HowToPlay() {
   return (
@@ -16,18 +19,18 @@ export default function HowToPlay() {
           <span className='text-body-secondary'> Pro tip: spending some time to roll for an article with high base stats will improve your chances of winning.</span>
         </Card.Text>
       </Card.Body>
-      <Card.Img className='m-3' style={{height: "16rem", width: "auto"}} variant="top" src="https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png" />
+      <Card.Img className='m-3' style={{height: "16rem", width: "auto"}} variant="top" src={RollImage} />
       </Stack>
     </Card>
     <Card className='w-100 h-auto'>
       <Stack direction="horizontal">
-      <Card.Img className='m-3' style={{height: "16rem", width: "auto"}} variant="top" src="https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png" />
+      <Card.Img className='m-3' style={{height: "16rem", width: "auto"}} variant="top" src={InspectImage} />
       <Card.Body>
         <Card.Title className="fs-2">Identify The Quotes</Card.Title>
         <Card.Text>
           Once you have an article, you will be given 4 quotes. 
           One of these quotes has been pulled from your article, and the rest have been pulled randomly from other articles across wikipedia.
-          Picking the quote from your article will <span className='text-info'>LEVEL UP</span> your article, but guessing wrong will cause a <span className='text-danger'>LEVEL DOWN</span>.
+          Picking the quote from your article will <span className='text-info'>LEVEL UP</span> your article, but guessing wrong will cause your article to <span className='text-danger'>LEVEL DOWN</span>.
         </Card.Text>
       </Card.Body>
       </Stack>
@@ -42,7 +45,7 @@ export default function HowToPlay() {
           The person with the highest ranked article is declared the  <span className='text-success'>WINNER</span>.
         </Card.Text>
       </Card.Body>
-      <Card.Img style={{height: "16rem", width: "auto"}} variant="top" src="https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png" />
+      <Card.Img style={{height: "16rem", width: "auto"}} variant="top" src={RankImage} />
       </Stack>
     </Card>
     </Stack>
