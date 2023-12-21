@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, ListGroup, Card, Stack, Badge, Button, ProgressBar, Placeholder, Spinner } from 'react-bootstrap';
-import {convert} from 'html-to-text'
+import { convert } from 'html-to-text'
 import axios from 'axios';
 import { motion, useAnimate } from "framer-motion"
 import LevelBadge from './LevelBadge';
@@ -215,7 +215,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
     if(selectedAudio) selectedAudio.audioEl.current.play()
     const updatedArticle = article
     updatedArticle.level += (wasCorrect) ? 1 : -1
-    const modifier = (wasCorrect) ? 1.5 : 0.6
+    const modifier = (wasCorrect) ? Math.min(1 + (articleQuestions.length / 15), 1.5) : 0.6
     let randomChoice = Math.floor(Math.random() * 3)
     switch(randomChoice){
       case 0:

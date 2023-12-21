@@ -80,12 +80,15 @@ namespace WikiSlam.Controllers
                 return BadRequest();
             }
 
-            if (_dbContext.Users.Find(id) == null)
+            var existingUser = _dbContext.Users.Find(id);
+            if (existingUser == null)
             {
                 return NotFound();
             }
 
-            _dbContext.Entry(user).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+            existingUser.IsAdmin = user.IsAdmin;
+            existingUser.Name = user.Name;
+            _dbContext.Entry(existingUser).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
             try
             {

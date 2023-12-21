@@ -1,17 +1,13 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Container, Row, Col, Stack, Card, Button, Placeholder, Spinner, Alert, ListGroup, ListGroupItem } from 'react-bootstrap';
-import ArticleCard from './ArticleCard';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Stack, Button, Spinner, Alert, ListGroup, ListGroupItem } from 'react-bootstrap';
 import axios from 'axios';
-import LevelBadge from './LevelBadge';
 import { motion } from 'framer-motion'
 import ReactAudioPlayer from 'react-audio-player';
+import ArticleCard from './ArticleCard';
+import LevelBadge from './LevelBadge';
 
 //Audio
 import GameOverSound from '../assets/GameOver.mp3';
-
-
-
-
 
 export default function Results({lobby, user, users, playAgainCallback}) {
 

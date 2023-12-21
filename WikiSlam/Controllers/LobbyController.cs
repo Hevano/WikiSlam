@@ -153,27 +153,6 @@ namespace WikiSlam.Controllers
             return await articleQuery.ToListAsync();
         }
 
-        //Interferes with the GetLobby endpoint
-        /*[HttpGet("{code}")]
-        public async Task<ActionResult<Lobby>> GetLobbyFromCode(string code)
-        {
-            //Lobby codes must be 3 characters
-            if(code.Length != 3)
-            {
-                return BadRequest();
-            }
-            if (_dbContext.Lobbies.IsNullOrEmpty())
-            {
-                return NotFound();
-            }
-            var lobby = await _dbContext.Lobbies.Where(l => l.Code.Equals(code)).FirstAsync();
-            if (lobby == null)
-            {
-                return NotFound();
-            }
-            return lobby;
-        }*/
-
         [HttpPost]
         public async Task<ActionResult<LobbyCreationResponse>> CreateLobby([FromBody] AdminLogin admin)
         {

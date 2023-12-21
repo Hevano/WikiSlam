@@ -11,7 +11,6 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectio
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
 
 //Add cleanup service
 builder.Services.AddHostedService<LobbyCleanupService>();
@@ -24,12 +23,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
-} else
-{
-    /*app.UseSwagger();
-    app.UseSwaggerUI();*/
 }
 
 var webSocketOptions = new WebSocketOptions

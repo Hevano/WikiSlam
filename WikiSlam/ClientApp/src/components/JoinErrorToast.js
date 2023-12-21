@@ -1,6 +1,5 @@
 import React from 'react'
-import { Toast } from 'react-bootstrap'
-import {ToastContainer} from 'react-bootstrap'
+import { Toast, ToastContainer } from 'react-bootstrap'
 
 export default function JoinErrorToast({errorTitle, errorMsg, dismissCallback}) {
   return (

@@ -1,12 +1,13 @@
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Button, Col, Container, Row, Accordion, Stack } from 'react-bootstrap'
+import { Button, Accordion } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { motion } from 'framer-motion'
-import {EditNameModal} from './EditNameModal';
+import { EditNameModal } from './EditNameModal';
 import { JoinModal } from './JoinModal'
 import HowToPlay from './HowToPlay'
+import JoinErrorToast from './JoinErrorToast'
 
 export function Home() {
 
@@ -16,6 +17,7 @@ export function Home() {
   const [showCreateLobby, setShowCreateLobby] = useState(false)
   const [showJoin, setShowJoin] = useState(false)
   const [createLobbyLoading, setCreateLobbyLoading] = useState(false)
+  const [createLobbyError, setCreateLobbyError] = useState()
   const [canRejoin, setCanRejoin] = useState(false)
 
   //Checks if we can rejoin a game in progress
@@ -48,6 +50,21 @@ export function Home() {
     }).catch(err => {
       console.log(err)
       setCreateLobbyLoading(false)
+      if(err.response.status === 400){
+        setCreateLobbyError(
+          {
+            title: `Invalid Name`,
+            errorMsg: "Name must be 12 letters or less"
+          }
+        )
+      }  else {
+        setCreateLobbyError(
+          {
+            title: `Error`,
+            errorMsg: err.message
+          }
+        )
+      }
     })
   }
 
@@ -62,6 +79,7 @@ export function Home() {
 
   return (
     <>
+    {createLobbyError && <JoinErrorToast bg="warning" errorTitle={createLobbyError.title} errorMsg={createLobbyError.errorMsg} dismissCallback={()=>{setCreateLobbyError(null)}}/>}
     <EditNameModal show={showCreateLobby} handleClose={()=>{setShowCreateLobby(false)}} handleCreate={createLobby} isLoading={createLobbyLoading}/>
     <JoinModal show={showJoin} handleClose={()=>{setShowJoin(false)}} />
     <div className='d-flex align-items-center flex-column' style={{height: "94vh"}}>

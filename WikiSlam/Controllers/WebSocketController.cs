@@ -131,7 +131,6 @@ namespace WikiSlam.Controllers
                     broadcastMsg["actionType"] = "start";
 
                     //update lobby round start timestamp
-                    //TODO: Remove all previously saved articles
                     var lobby = await _dbContext.Lobbies.FindAsync(user.LobbyId);
                     if (lobby == null) return false;
                     lobby.RoundStartTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

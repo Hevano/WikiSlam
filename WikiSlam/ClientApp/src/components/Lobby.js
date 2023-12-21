@@ -1,17 +1,14 @@
-import React, {useState, useEffect, useCallback} from 'react'
+import React, {useState, useEffect} from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import Button from 'react-bootstrap/Button'
-import { LobbyList } from './LobbyList';
-import { EditNameModal } from './EditNameModal';
+import useWebSocket from 'react-use-websocket';
 import { Spinner } from 'reactstrap';
+import { Stack, Container, Row, Col, Button } from 'react-bootstrap';
 import axios from 'axios'
 import Results from './Results';
 import {Game} from './Game'
-import { Stack } from 'react-bootstrap';
+import { EditNameModal } from './EditNameModal';
+import { LobbyList } from './LobbyList';
+
 import { motion } from 'framer-motion'
 
 const GameStates = {
@@ -33,8 +30,8 @@ export function Lobby() {
   const [isEditingNameLoading, setIsEditingNameLoading] = useState(false)
   const [gameState, setGameState] = useState(localStorage.getItem('wikislam-gamestate') || GameStates.Lobby)
 
-  //TODO: Use the proxy routing somehow
-  const webSocket = useWebSocket(`wss://wikislam.azurewebsites.net/socket`, {
+  //wss://wikislam.azurewebsites.net/socket
+  const webSocket = useWebSocket(`ws://localhost:3000/socket`, {
     onOpen: () => {console.log("opended!")},
     onClose: () => { console.log("closed!");},
     shouldReconnect: (closeEvent) => { return true },

@@ -39,7 +39,7 @@ namespace WikiSlam.Controllers
             {
                 return NotFound();
             }
-            return _dbContext.Articles.ToList(); //TODO: figure out why this can't be async
+            return _dbContext.Articles.ToList();
         }
 
         [HttpPost]
@@ -67,7 +67,7 @@ namespace WikiSlam.Controllers
             }
 
             //Remove any other articles this user owns
-            var userArticles = _dbContext.Articles.Where(a => a.UserId == article.UserId).ToList(); //TODO: figure out why this can't be async
+            var userArticles = _dbContext.Articles.Where(a => a.UserId == article.UserId).ToList();
             if (!userArticles.IsNullOrEmpty())
             {
                 _dbContext.Articles.RemoveRange(userArticles);
@@ -87,7 +87,9 @@ namespace WikiSlam.Controllers
                 return BadRequest();
             }
 
-            if(_dbContext.Articles.Find(article.Id) == null)
+
+            var existingArticle = _dbContext.Articles.Find(article.Id);
+            if (existingArticle == null)
             {
                 return NotFound();
             }
@@ -107,7 +109,14 @@ namespace WikiSlam.Controllers
                 return Conflict();
             }
 
-            _dbContext.Entry(article).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+
+            existingArticle.Level = article.Level;
+            existingArticle.Strength = article.Strength;
+            existingArticle.Dexterity = article.Dexterity;
+            existingArticle.Willpower = article.Willpower;
+            existingArticle.Title = article.Title;
+            existingArticle.Image = article.Image;
+            _dbContext.Entry(existingArticle).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
             try
             {

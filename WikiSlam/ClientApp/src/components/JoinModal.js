@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { Modal, Button, Form } from 'react-bootstrap'
+import { Modal } from 'react-bootstrap'
 import { JoinForm } from './JoinForm'
 
 export function JoinModal({show, handleClose}) {

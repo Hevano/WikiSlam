@@ -23,11 +23,11 @@ export default function HowToPlay() {
       <Stack direction="horizontal">
       <Card.Img className='m-3' style={{height: "16rem", width: "auto"}} variant="top" src="https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png" />
       <Card.Body>
-        <Card.Title className="fs-2">Answer Trivia Questions</Card.Title>
+        <Card.Title className="fs-2">Identify The Quotes</Card.Title>
         <Card.Text>
           Once you have an article, you will be given 4 quotes. 
           One of these quotes has been pulled from your article, and the rest have been pulled randomly from other articles across wikipedia.
-          Picking the quote from your article will <span className='text-info'>LEVEL UP</span> your article, but guessing wrong will casue a <span className='text-danger'>LEVEL DOWN</span>.
+          Picking the quote from your article will <span className='text-info'>LEVEL UP</span> your article, but guessing wrong will cause a <span className='text-danger'>LEVEL DOWN</span>.
         </Card.Text>
       </Card.Body>
       </Stack>
@@ -37,7 +37,7 @@ export default function HowToPlay() {
       <Card.Body>
         <Card.Title className="fs-2">Outrank Your Opponents</Card.Title>
         <Card.Text>
-          Your articles strength, dexterity, and willpower increase when it levels up. 
+          Your article's strength, dexterity, and willpower increase when it levels up. 
           At the end of the 2 minute round, everyone's articles are ranked based on these stats.
           The person with the highest ranked article is declared the  <span className='text-success'>WINNER</span>.
         </Card.Text>

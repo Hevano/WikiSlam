@@ -23,7 +23,7 @@ export function JoinForm() {
       return;
     }
     setLoading(true)
-    axios({url: `api/user`, method: "post", data: {name: userName, code: lobbyCode}}).then(result =>{
+    axios({url: `api/user`, method: "post", data: {name: userName, code: lobbyCode.toLowerCase()}}).then(result =>{
       const newUser = result.data
       axios.get(`api/lobby/${result.data.lobbyId}`).then(res => {
         navigate("/lobby", {state: {lobby:res.data, user: newUser}})
