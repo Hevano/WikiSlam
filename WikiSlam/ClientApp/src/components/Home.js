@@ -83,7 +83,7 @@ export function Home() {
     <EditNameModal show={showCreateLobby} handleClose={()=>{setShowCreateLobby(false)}} handleCreate={createLobby} isLoading={createLobbyLoading}/>
     <JoinModal show={showJoin} handleClose={()=>{setShowJoin(false)}} />
     <div className='d-flex align-items-center flex-column' style={{height: "94vh"}}>
-    <h1 className='m-5' style={{"font-size": "100pt"}}>
+    <h1 className='m-5 text-center' style={{"font-size": "100pt"}}>
       <motion.div className='d-inline-block' animate={{x:[-1000, 0]}} transition={{ ease: "easeOut", duration: 0.2 }}>WIKI</motion.div>
       <motion.div className='d-inline-block' animate={{x:[1000, 0]}}transition={{ ease: "easeOut", duration: 0.2 }}>SLAM!</motion.div>
     </h1>

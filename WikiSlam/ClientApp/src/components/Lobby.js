@@ -31,7 +31,7 @@ export function Lobby() {
   const [gameState, setGameState] = useState(localStorage.getItem('wikislam-gamestate') || GameStates.Lobby)
 
     //ws://localhost:3000/socket for local testing
-    const webSocket = useWebSocket(`wss://wikislam.azurewebsites.net/socket`, {
+    const webSocket = useWebSocket(`ws://localhost:3000/socket`, {
     onOpen: () => {console.log("opended!")},
     onClose: () => { console.log("closed!");},
     shouldReconnect: (closeEvent) => { return true },
@@ -161,7 +161,7 @@ export function Lobby() {
               <Stack gap={3}>
                 <h3 className='m-0 mt-4' style={{fontSize:"40pt", lineHeight: "75%"}}>LOBBY</h3>
                 <h1 className='text-light mb-5' style={{fontSize:"100pt", lineHeight: "75%"}}>CODE: {lobby.code ? lobby.code : "???"}</h1>
-                <div style={{height: "40vh"}}></div>
+                <div className='d-lg-block' style={{height: "40vh", display: "none"}}></div>
                 <motion.div className="mx-auto w-75" whileHover={{scale: 1.05}}><Button className="w-100 fs-2" variant='primary' disabled={!user.isAdmin} onClick={startGame}>Start Game</Button></motion.div>
                 <motion.div className="mx-auto w-50" whileHover={{scale: 1.05}}><Button className="w-100 fs-3" variant='secondary' onClick={leave}>Leave Lobby</Button></motion.div>
               </Stack>

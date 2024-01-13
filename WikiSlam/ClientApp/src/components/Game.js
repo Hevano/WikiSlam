@@ -15,6 +15,7 @@ import LoadedSound from '../assets/Loaded.mp3';
 import ArticleLoadedSound from '../assets/ArticleLoaded.mp3'
 import SelectedSound from '../assets/Selected.mp3';
 import ReactAudioPlayer from 'react-audio-player';
+import RerollButton from './RerollButton';
 
 export function Game({lobby, user, users, webSocket, toResultsCallback, sortUsersCallback}) {
 
@@ -212,6 +213,7 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
 
   //Callback for when user selects an answer to a question
   function answerQuestion(wasCorrect){
+    if(articleLoading || questionsLoading) return;
     if(selectedAudio) selectedAudio.audioEl.current.play()
     const updatedArticle = article
     updatedArticle.level += (wasCorrect) ? 1 : -1
@@ -294,9 +296,9 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
         ref={(element) => {setSelectedAudio(element)}}
         volume={0.5}
       />
-    <Container fluid className='p-0'>
+    <Container fluid className='px-3' style={{"max-height": "12%"}}>
       <Row>
-      <Col className='bg-secondary col-2 min-vh-100'>
+      <Col className='bg-secondary col-12 col-md-2 min-vh-100 order-last order-md-first'>
         <h1 style={{color:"white", textAlign:"center"}}>WikiSlam</h1>
         <ListGroup>
           {users.map((u)=>{
@@ -304,19 +306,22 @@ export function Game({lobby, user, users, webSocket, toResultsCallback, sortUser
           })}
         </ListGroup>
       </Col>
+      <div class="w-100 d-block d-md-none"></div>
+
       <Col>
+          <div className='position-absolute top-0 start-0 m-1'>
+          <LevelBadge spacing="mx-auto" size={3} article={article} isLoading={articleLoading} smallBreakpoint={true}/>
+          </div>
+          <div className='position-absolute top-0 end-0 m-1'>
+          <RerollButton disabled={articleLoading || questionsLoading} onClick={getArticle} smallBreakpoint={true}/>
+          </div>
+          
         <Stack>
-          <ProgressBar animated variant='warning' className="m-4" now={timerProgress} />
+          <div className='d-flex'><ProgressBar animated variant='warning' className="m-4 w-50 mx-auto" now={timerProgress} /></div>
           <Stack direction="horizontal" gap={6}>
-            <LevelBadge spacing="mx-auto" size={3} article={article} isLoading={articleLoading}/>
+            <LevelBadge spacing="mx-auto" size={3} article={article} isLoading={articleLoading} smallBreakpoint={false}/>
             <ArticleCard article={article} articleLoading={articleLoading} strRef={strRef} dexRef={dexRef} wilRef={wilRef}/>
-            <div className='mx-auto'>
-              <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
-              <Button variant="warning" className='fs-1 mt-auto mx-auto p-2' disabled={articleLoading || questionsLoading} onClick={getArticle}>🎲</Button>
-              </motion.div>
-              <p className='text-light mx-auto text-center mb-auto'>REROLL</p>
-            </div>
-            
+            <RerollButton disabled={articleLoading || questionsLoading} onClick={getArticle} smallBreakpoint={false}/>
           </Stack>
           <QuestionBox isLoading={questionsLoading} questionArray={randomQuestions} questionCallback={answerQuestion}/>
         </Stack>

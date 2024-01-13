@@ -9,10 +9,10 @@ export default function QuestionBox({questionArray, isLoading, questionCallback}
   function QuestionEntry(questionIndex){
     return(
       <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.8 }}>
-          <Stack className="bg-light text-primary-emphasis m-3 p-3 border rounded" direction='horizontal' onClick={()=>{questionCallback(questionArray[questionIndex].correctAnswer)}}>
+          <Stack className="bg-light text-primary-emphasis m-md-3 m-1 border rounded" direction='horizontal' onClick={()=>{questionCallback(questionArray[questionIndex].correctAnswer)}}>
             {(isLoading) ? 
-            <Spinner className='mx-auto p-5'/> : 
-            <><Badge className="m-4 p-4">{questionIndex + 1}.</Badge><p>"{questionArray[questionIndex].text}"</p></>}
+            <Spinner className='mx-auto p-md-5'/> : 
+            <><Badge className="m-md-4 p-md-5 mx-1">{questionIndex + 1}.</Badge><p>"{questionArray[questionIndex].text}"</p></>}
           </Stack>
       </motion.div>
     )
@@ -22,18 +22,18 @@ export default function QuestionBox({questionArray, isLoading, questionCallback}
   return (
     <Container>
       <Row>
-        <Col>
+        <Col md={6} sm={12}>
           {QuestionEntry(0)}
         </Col>
-        <Col>
+        <Col md={6} sm={12}>
           {QuestionEntry(1)}
         </Col>
       </Row>
       <Row className='h-50'>
-        <Col>
+        <Col md={6} sm={12}>
           {QuestionEntry(2)}
         </Col>
-        <Col>
+        <Col md={6} sm={12}>
           {QuestionEntry(3)}
         </Col>
       </Row>

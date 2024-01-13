@@ -33,11 +33,11 @@ export default function Results({lobby, user, users, playAgainCallback}) {
     <Container fluid className='p-0'>
       <div className='result-shape'/>
         <Row className='p-5'>
-            <Col>
-                <h3 className='m-0 text-light' style={{fontSize:"50pt"}}>RESULTS</h3>
+            <Col className='col-md-3 col-12 order-1'>
+                <h3 className='m-0 text-light' style={{fontSize:"50pt", "text-shadow": "2px 2px 4px black"}}>RESULTS</h3>
                 <h1 className='mb-5' style={{fontSize:"20pt", lineHeight: "75%"}}>CODE: {lobby.code ? lobby.code : "???"}</h1>
             </Col>
-            <Col className='col-6'>
+            <Col className='col-md-6 col-12 order-3'>
               {
                 (resultsLoading) ?
                 <div className='d-flex'><Spinner className='m-auto'/></div> :
@@ -67,9 +67,9 @@ export default function Results({lobby, user, users, playAgainCallback}) {
                 </Stack>
               }
             </Col>
-            <Col>
+            <Col className='col-md-3 col-12 order-md-last order-2'>
             <div className="d-flex align-items-end flex-column bd-highlight mb-3 h-100">
-              <motion.div whileHover={{scale: 1.5}} className="mt-auto p-2 bd-highlight"><Button className="fs-2 " onClick={playAgainCallback}>Play Again</Button></motion.div>
+              <motion.div whileHover={{scale: 1.5}} className="mb-5 mx-auto p-2 bd-highlight"><Button className="fs-2" onClick={playAgainCallback}>Play Again</Button></motion.div>
             </div>
             
             </Col>
