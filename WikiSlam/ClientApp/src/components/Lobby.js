@@ -31,7 +31,7 @@ export function Lobby() {
   const [gameState, setGameState] = useState(localStorage.getItem('wikislam-gamestate') || GameStates.Lobby)
 
     //ws://localhost:3000/socket for local testing
-    const webSocket = useWebSocket(`ws://localhost:3000/socket`, {
+    const webSocket = useWebSocket(`wss://wikislam.azurewebsites.net/socket`, {
     onOpen: () => {console.log("opended!")},
     onClose: () => { console.log("closed!");},
     shouldReconnect: (closeEvent) => { return true },

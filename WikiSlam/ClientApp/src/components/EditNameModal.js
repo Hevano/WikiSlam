@@ -12,7 +12,7 @@ export function EditNameModal({show, handleClose, handleCreate, isLoading, modal
         centered
         backdrop={true}
       >
-        <Modal.Dialog>
+        <Modal.Dialog className='w-100'>
             <Modal.Header closeButton>
             <Modal.Title>{modalTitle ? modalTitle : "Create New Lobby"}</Modal.Title>
             </Modal.Header>

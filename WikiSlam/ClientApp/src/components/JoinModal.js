@@ -1,10 +1,8 @@
-import React, { useRef } from 'react'
+import React from 'react'
 import { Modal } from 'react-bootstrap'
 import { JoinForm } from './JoinForm'
 
 export function JoinModal({show, handleClose}) {
-
-  const userNameRef = useRef()
 
   return (
     <Modal
